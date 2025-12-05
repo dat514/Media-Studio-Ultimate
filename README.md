@@ -1,9 +1,7 @@
 
 # Media Downloader 1.1
-**A beautiful, fast, and easy-to-use desktop downloader for YouTube, TikTok, Instagram, Facebook, Twitter/X, SoundCloud and 1000+ sites**
+**A beautiful, fast, and easy-to-use desktop downloader for YouTube, TikTok, Instagram, Facebook, Twitter/X, SoundCloud**
 
-![App Preview](https://i.ibb.co.com/3r5v6g0/preview.png)
-*(Screenshot coming soon – or replace with your own)*
 
 Simple • Modern UI • Supports looping videos • Audio extraction (MP3/WAV) • Built with Python & pywebview
 
