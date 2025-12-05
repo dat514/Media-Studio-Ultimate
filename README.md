@@ -91,8 +91,6 @@ Full list → https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md
 MIT License © 2025 dat514
 
 ---
-### Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=dat514/MediaDownloader&type=Date)](https://star-history.com/#dat514/MediaDownloader&Date)
 
 <div align="center">
 Just replace the placeholder screenshot and you’re good to go!  
