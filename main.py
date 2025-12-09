@@ -41,7 +41,7 @@ html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Media Studio Ultimate 2.0</title>
+<title>Media Studio Ultimate 2.1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     :root { --primary:#ff0055; --bg:#0a0e17; --card:#151b2e; --text:#fff; --text-dim:#999; }
@@ -163,7 +163,7 @@ html_content = """<!DOCTYPE html>
         <div style="position:absolute; top:20px; right:20px;">
            <button class="btn btn-sm btn-secondary" onclick="updateLibs()">Update Core</button>
         </div>
-        <h1>Media Studio Ultimate 2.0</h1>
+        <h1>Media Studio Ultimate 2.1</h1>
         <div class="tabs">
             <div class="tab active" onclick="switchTab('downloader')" id="tab-btn-downloader">Downloader</div>
             <div class="tab" onclick="switchTab('converter')" id="tab-btn-converter">Converter</div>
@@ -1538,5 +1538,5 @@ class Api:
 if __name__ == '__main__':
     threading.Thread(target=run_server, daemon=True).start()
     time.sleep(0.5)
-    webview.create_window("Media Studio Ultimate 2.0", "http://127.0.0.1:8000", width=1150, height=850, background_color='#0a0e17', js_api=Api())
+    webview.create_window("Media Studio Ultimate 2.1", "http://127.0.0.1:8000", width=1150, height=850, background_color='#0a0e17', js_api=Api())
     webview.start(debug=False)
