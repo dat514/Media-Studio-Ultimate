@@ -21,6 +21,7 @@ import threading
 import time
 import platform
 import subprocess
+import urllib.request
 from http.server import SimpleHTTPRequestHandler, socketserver
 from webview import FileDialog
 import webbrowser
@@ -123,6 +124,7 @@ html_content = """<!DOCTYPE html>
             <div class="tab" onclick="switchTab('converter')" id="tab-btn-converter">Converter</div>
             <div class="tab" onclick="switchTab('resizer')" id="tab-btn-resizer">Editor (Resize/Crop)</div>
             <div class="tab" onclick="switchTab('gifmaker')" id="tab-btn-gifmaker">Video to GIF</div>
+            <div class="tab" onclick="switchTab('shortener')" id="tab-btn-shortener">URL Shortener</div>
         </div>
     </div>
 
@@ -322,6 +324,25 @@ html_content = """<!DOCTYPE html>
                      <div id="gif-status" class="status-text"></div>
                 </div>
              </div>
+        </div>
+    </div>
+
+    <div id="shortener" class="section">
+        <div class="card">
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--primary);">URL Shortener</h2>
+            <div style="max-width:600px; margin:0 auto; text-align:center;">
+                <input type="text" id="short-url-input" class="input-box" placeholder="Paste your long URL here..." style="margin-bottom:20px;">
+                <button class="btn" onclick="shorten_url()" style="width:100%; font-size:1.2em; margin-bottom:20px;">Shorten URL</button>
+                
+                <div id="short-result" style="display:none; background:#222; padding:20px; border-radius:12px; border:1px solid #444;">
+                    <label class="label-title" style="margin-bottom:10px;">Shortened URL:</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="short-url-out" class="input-style" readonly style="margin-bottom:0; text-align:center; font-size:1.2em; color:var(--primary);">
+                        <button class="btn" onclick="copyShortUrl()" style="margin:0;">Copy</button>
+                    </div>
+                </div>
+                <div id="short-status" class="status-text"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -814,6 +835,32 @@ html_content = """<!DOCTYPE html>
              document.getElementById('gif-status').innerText = "Error: " + res.error;
         }
     }
+    
+    async function shorten_url() {
+        const url = document.getElementById('short-url-input').value.trim();
+        if(!url) return;
+        
+        document.getElementById('short-status').innerText = "Shortening...";
+        document.getElementById('short-result').style.display = 'none';
+        
+        const res = await window.pywebview.api.shorten_url(url);
+        if(res.success) {
+             document.getElementById('short-url-out').value = res.url;
+             document.getElementById('short-result').style.display = 'block';
+             document.getElementById('short-status').innerText = "Done!";
+        } else {
+             document.getElementById('short-status').innerText = "Error: " + res.error;
+        }
+    }
+    
+    function copyShortUrl() {
+        const copyText = document.getElementById("short-url-out");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); 
+        navigator.clipboard.writeText(copyText.value);
+        alert("Copied: " + copyText.value);
+    }
+
 </script>
 </body>
 </html>
@@ -994,6 +1041,19 @@ class Api:
             self._open_folder(out_path)
             return {'success': True, 'path': out_path}
         except Exception as e: return {'success': False, 'error': str(e)}
+
+    def shorten_url(self, url):
+        try:
+            api_url = f"https://is.gd/create.php?format=simple&url={urllib.parse.quote(url)}"
+            req = urllib.request.Request(api_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response:
+                if response.status == 200:
+                    short_url = response.read().decode('utf-8')
+                    return {'success': True, 'url': short_url}
+                else:
+                    return {'success': False, 'error': f"HTTP {response.status}"}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
 
     def choose_files(self, multi):
         res = webview.windows[0].create_file_dialog(webview.OPEN_DIALOG, allow_multiple=multi)
