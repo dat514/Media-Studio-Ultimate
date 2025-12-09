@@ -152,7 +152,7 @@ html_content = """<!DOCTYPE html>
                         <label class="label-title">Download Type</label>
                         <select id="dl-type" class="select-style" onchange="updateDlOptions()">
                             <option value="video">Video (MP4/MKV)</option>
-                            <option value="audio">Audio (MP3)</option>
+                            <option value="audio">Audio (MP3/WAV)</option>
                         </select>
                         
                         <!-- Video Options -->
@@ -181,6 +181,13 @@ html_content = """<!DOCTYPE html>
                         <!-- Audio Options -->
                         <div id="dl-opt-audio" class="row" style="margin-top:10px; display:none;">
                             <div class="col">
+                                <label class="label-title">Audio Format</label>
+                                <select id="dl-audio-fmt" class="select-style" onchange="updateAudioFormat()">
+                                    <option value="mp3">MP3</option>
+                                    <option value="wav">WAV (Lossless)</option>
+                                </select>
+                            </div>
+                            <div class="col" id="dl-bitrate-container">
                                 <label class="label-title">Audio Quality</label>
                                 <select id="dl-bitrate" class="select-style">
                                     <option value="320">High (320kbps)</option>
@@ -189,10 +196,18 @@ html_content = """<!DOCTYPE html>
                                 </select>
                             </div>
                         </div>
+                        
+                        <!-- Playlist Mode -->
+                        <div id="dl-playlist-info" style="display:none; margin-top:15px; padding:15px; background:#222; border-radius:10px; border-left:4px solid var(--primary);">
+                            <div style="font-weight:bold; margin-bottom:5px; color:var(--primary);">📋 Playlist Detected</div>
+                            <div id="pl-title" style="margin-bottom:3px;"></div>
+                            <div id="pl-count" style="color:#888; font-size:0.9em;"></div>
+                        </div>
                     </div>
                     
                     <button class="btn" onclick="dl_start()">Download Now</button>
                     <div id="dl-status" class="status-text"></div>
+                    <div id="dl-track-progress" style="text-align:center; margin-top:10px; color:#888; display:none;"></div>
                 </div>
             </div>
         </div>
@@ -479,12 +494,27 @@ html_content = """<!DOCTYPE html>
         const url = document.getElementById('url').value;
         if(!url) return;
         document.getElementById('dl-status').innerText = "Analyzing...";
+        document.getElementById('dl-playlist-info').style.display = 'none';
         try {
             const res = await window.pywebview.api.analyze(url);
             dlData = JSON.parse(res);
-            document.getElementById('dl-title').innerText = dlData.title || "Video";
-            document.getElementById('dl-author').innerText = dlData.uploader || "";
-            document.getElementById('dl-thumb').src = dlData.thumbnail || "";
+            
+            // Check if it's a playlist
+            if(dlData._type === 'playlist' && dlData.entries) {
+                document.getElementById('dl-title').innerText = dlData.title || "Playlist";
+                document.getElementById('dl-author').innerText = dlData.uploader || dlData.channel || "";
+                document.getElementById('dl-thumb').src = dlData.thumbnail || (dlData.entries[0] && dlData.entries[0].thumbnail) || "";
+                
+                // Show playlist info
+                document.getElementById('pl-title').innerText = dlData.title || "Playlist";
+                document.getElementById('pl-count').innerText = `${dlData.entries.length} tracks`;
+                document.getElementById('dl-playlist-info').style.display = 'block';
+            } else {
+                document.getElementById('dl-title').innerText = dlData.title || "Video";
+                document.getElementById('dl-author').innerText = dlData.uploader || "";
+                document.getElementById('dl-thumb').src = dlData.thumbnail || "";
+            }
+            
             document.getElementById('dl-card').style.display = 'block';
             document.getElementById('dl-status').innerText = "Ready";
         } catch(e) { document.getElementById('dl-status').innerText = "Error: "+e; }
@@ -493,6 +523,13 @@ html_content = """<!DOCTYPE html>
         const type = document.getElementById('dl-type').value;
         document.getElementById('dl-opt-video').style.display = (type === 'video') ? 'flex' : 'none';
         document.getElementById('dl-opt-audio').style.display = (type === 'audio') ? 'flex' : 'none';
+    }
+    
+    function updateAudioFormat() {
+        const audioFmt = document.getElementById('dl-audio-fmt').value;
+        const bitrateContainer = document.getElementById('dl-bitrate-container');
+        // Hide bitrate for WAV (lossless), show for MP3
+        bitrateContainer.style.display = (audioFmt === 'wav') ? 'none' : 'block';
     }
 
     async function dl_start() {
@@ -503,12 +540,22 @@ html_content = """<!DOCTYPE html>
             type: type,
             res: document.getElementById('dl-res').value,
             fps: document.getElementById('dl-fps').value,
-            bitrate: document.getElementById('dl-bitrate').value
+            bitrate: document.getElementById('dl-bitrate').value,
+            audio_fmt: document.getElementById('dl-audio-fmt') ? document.getElementById('dl-audio-fmt').value : 'mp3',
+            is_playlist: dlData._type === 'playlist'
         };
 
         document.getElementById('dl-status').innerText = "Downloading...";
-        const res = await window.pywebview.api.download(dlData.webpage_url, JSON.stringify(opts));
-        document.getElementById('dl-status').innerText = res.success ? "Done!" : "Error: " + res.error;
+        document.getElementById('dl-track-progress').style.display = 'none';
+        
+        const res = await window.pywebview.api.download(dlData.webpage_url || dlData.url, JSON.stringify(opts));
+        
+        if(res.success) {
+            document.getElementById('dl-status').innerText = res.message || "Done!";
+            document.getElementById('dl-track-progress').style.display = 'none';
+        } else {
+            document.getElementById('dl-status').innerText = "Error: " + res.error;
+        }
     }
 
     let convFiles = [];
@@ -953,10 +1000,12 @@ class Api:
             if not folder: return {'success': False}
             opts_data = json.loads(opts_json)
             dtype = opts_data['type']
+            is_playlist = opts_data.get('is_playlist', False)
             
             ydl_opts = {
                 'outtmpl': os.path.join(folder, '%(title)s.%(ext)s'),
                 'quiet': True,
+                'no_warnings': True,
             }
             
             if dtype == 'video':
@@ -982,18 +1031,41 @@ class Api:
                 
             elif dtype == 'audio':
                 br = opts_data['bitrate']
+                audio_fmt = opts_data.get('audio_fmt', 'mp3')
+                
                 ydl_opts['format'] = 'bestaudio/best'
-                ydl_opts['postprocessors'] = [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': br,
-                }]
+                
+                if audio_fmt == 'wav':
+                    ydl_opts['postprocessors'] = [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'wav',
+                    }]
+                else:  # mp3
+                    ydl_opts['postprocessors'] = [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': br,
+                    }]
+            
+            # Handle playlists
+            if is_playlist:
+                ydl_opts['noplaylist'] = False
+            else:
+                ydl_opts['noplaylist'] = True
             
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([url])
+            
             self._open_folder(folder)
-            return {'success': True}
-        except Exception as e: return {'success': False, 'error': str(e)}
+            
+            # Return success message with track count if playlist
+            if is_playlist:
+                return {'success': True, 'message': 'Playlist downloaded successfully!'}
+            else:
+                return {'success': True, 'message': 'Downloaded successfully!'}
+                
+        except Exception as e: 
+            return {'success': False, 'error': str(e)}
 
     def open_directory(self, path):
         self._open_folder(path)
