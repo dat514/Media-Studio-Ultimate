@@ -314,29 +314,6 @@ pause
 ### run.bat shows error
 - **Solution**: Make sure you ran `install_libs.bat` first
 - **Or**: Install dependencies manually with `pip install pywebview yt-dlp`
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Here's how:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
-
-### Ideas for Contributions
-- Add more crop shapes (hexagon, star, custom)
-- Implement drag-and-drop file addition
-- Add subtitle download/extraction
-- Create preset profiles for common conversions
-- Add thumbnail extraction
-- Implement playlist batch download
-- Add audio/video trimming tool
-- Create settings panel for default preferences
-
 ---
 
 ## 📝 Changelog
