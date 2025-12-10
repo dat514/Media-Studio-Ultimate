@@ -61,7 +61,7 @@ Beautiful Modern UI • Batch Processing • Visual Crop Editor • 60+ Format S
 
 <div align="center">
 <img src="screenshots/screenshot.png" width="800"/>
-<p><em>Media Studio Ultimate 2.0 - All-in-One Interface</em></p>
+<p><em>Media Studio Ultimate 2.2 - All-in-One Interface</em></p>
 </div>
 
 ---
@@ -345,7 +345,7 @@ pause
 - ✨ Real-time preview for all media
 - ✨ Added `install_libs.bat` for easy setup
 - ✨ Added `run.bat` for quick launch
-- 🎭 Added **Background Remover** with AI
+- 🎭 Added **Background Remover** 
 - 🎨 Modern dark theme UI redesign
 - 🎨 Smooth animations and transitions
 - 🐛 Various bug fixes and improvements
