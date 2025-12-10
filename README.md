@@ -345,7 +345,7 @@ pause
 - ✨ Real-time preview for all media
 - ✨ Added `install_libs.bat` for easy setup
 - ✨ Added `run.bat` for quick launch
-- 🎭 Added **Background Remover** with AI
+- 🎭 Added **Background Remover** 
 - 🎨 Modern dark theme UI redesign
 - 🎨 Smooth animations and transitions
 - 🐛 Various bug fixes and improvements
