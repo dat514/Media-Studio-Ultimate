@@ -1,8 +1,8 @@
 @echo off
-title Media Studio Ultimate 2.0
+title Media Studio Ultimate 2.2
 color 0B
 echo ========================================
-echo  Media Studio Ultimate 2.0
+echo  Media Studio Ultimate 2.2
 echo  Starting application...
 echo ========================================
 echo.

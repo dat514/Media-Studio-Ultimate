@@ -8,7 +8,7 @@ echo ========================================
 echo.
 echo Installing required libraries...
 echo.
-pip install pywebview yt-dlp
+pip install pywebview yt-dlp qrcode pillow rembg
 echo.
 echo ========================================
 echo  Installation complete!

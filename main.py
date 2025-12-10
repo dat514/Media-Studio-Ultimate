@@ -27,6 +27,7 @@ from webview import FileDialog
 import webbrowser
 import qrcode
 from PIL import Image
+from rembg import remove
 
 LOGO_SVG = """<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
   <circle cx="64" cy="64" r="60" fill="#ff0055" opacity="0.2"/>
@@ -170,6 +171,7 @@ html_content = """<!DOCTYPE html>
             <div class="tab" onclick="switchTab('resizer')" id="tab-btn-resizer">Editor (Resize/Crop)</div>
             <div class="tab" onclick="switchTab('gifmaker')" id="tab-btn-gifmaker">Video to GIF</div>
             <div class="tab" onclick="switchTab('shortener')" id="tab-btn-shortener">Links & QR</div>
+            <div class="tab" onclick="switchTab('bgremover')" id="tab-btn-bgremover">BG Remover</div>
         </div>
     </div>
 
@@ -543,6 +545,30 @@ html_content = """<!DOCTYPE html>
         </div>
     </div>
 </div>
+
+
+    <div id="bgremover" class="section">
+        <div class="card">
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--primary);">Background Remover (Beta)</h2>
+            <div class="row">
+                <div class="col" style="flex:2">
+                    <div class="editor-container" style="background:#000 url('data:image/svg+xml;utf8,<svg width=\'20\' height=\'20\' xmlns=\'http://www.w3.org/2000/svg\'><rect x=\'0\' y=\'0\' width=\'10\' height=\'10\' fill=\'%23333\'/><rect x=\'10\' y=\'10\' width=\'10\' height=\'10\' fill=\'%23333\'/></svg>');">
+                        <span id="bg-ph" style="color:#fff; background:rgba(0,0,0,0.5); padding:10px; border-radius:5px;">Select an image to remove background</span>
+                        <img id="bg-preview" class="media-preview" style="display:none">
+                        <img id="bg-result" class="media-preview" style="display:none; position:absolute; top:0; left:0;">
+                    </div>
+                </div>
+                <div class="col">
+                     <button class="btn" style="width:100%" onclick="bg_open()">Open Image</button>
+                     <div style="margin:20px 0; text-align:center;">
+                         <button class="btn" onclick="bg_process()" id="btn-bg-process" disabled>Remove Background</button>
+                     </div>
+                     <div id="bg-status" class="status-text"></div>
+                     <button class="btn btn-secondary" onclick="bg_save()" id="btn-bg-save" style="width:100%; margin-top:20px;" disabled>Download Result</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <script>
     function switchTab(id) {
@@ -1205,6 +1231,54 @@ html_content = """<!DOCTYPE html>
         }, 2000);
     }
 
+    // --- BACKGROUND REMOVER ---
+    let bgFile = null;
+    let bgResultPath = null;
+    
+    async function bg_open() {
+        const f = await window.pywebview.api.choose_files(false);
+        if(f && f.length) {
+            bgFile = f[0];
+            document.getElementById('bg-ph').style.display = 'none';
+            document.getElementById('bg-result').style.display = 'none';
+            document.getElementById('bg-preview').style.display = 'block';
+            document.getElementById('bg-preview').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(bgFile);
+            
+            document.getElementById('btn-bg-process').disabled = false;
+            document.getElementById('btn-bg-save').disabled = true;
+            document.getElementById('bg-status').innerText = "Ready to process.";
+        }
+    }
+    
+    async function bg_process() {
+        if(!bgFile) return;
+        document.getElementById('bg-status').innerText = "Processing... (First run may take time)";
+        document.getElementById('btn-bg-process').disabled = true;
+        
+        const res = await window.pywebview.api.remove_bg(bgFile);
+        
+        if(res.success) {
+            bgResultPath = res.path;
+            document.getElementById('bg-result').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(res.path) + "&t=" + new Date().getTime();
+            document.getElementById('bg-preview').style.display = 'none'; // Hide original
+            document.getElementById('bg-result').style.display = 'block';
+            document.getElementById('bg-status').innerText = "Background Removed!";
+            document.getElementById('btn-bg-save').disabled = false;
+        } else {
+             document.getElementById('bg-status').innerText = "Error: " + res.error;
+             document.getElementById('btn-bg-process').disabled = false;
+        }
+    }
+    
+    async function bg_save() {
+        if(!bgResultPath) return;
+        const folder = await window.pywebview.api.choose_folder();
+        if(folder) {
+             const res = await window.pywebview.api.save_qr_cleanup(bgResultPath, folder);
+             if(res.success) alert("Saved!");
+        }
+    }
+
 </script>
 </body>
 </html>
@@ -1534,6 +1608,23 @@ class Api:
     def choose_folder(self):
         res = webview.windows[0].create_file_dialog(FileDialog.FOLDER)
         return res[0] if res else None
+
+    def remove_bg(self, src):
+        try:
+            img = Image.open(src)
+            output = remove(img)
+            
+            # Save to temp
+            temp_dir = os.path.join(os.getcwd(), 'screenshots')
+            if not os.path.exists(temp_dir): os.makedirs(temp_dir)
+            
+            fname = f"bg_removed_{int(time.time()*1000)}.png"
+            out_path = os.path.join(temp_dir, fname)
+            output.save(out_path)
+            
+            return {'success': True, 'path': out_path}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
 
 if __name__ == '__main__':
     threading.Thread(target=run_server, daemon=True).start()

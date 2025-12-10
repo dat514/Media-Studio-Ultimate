@@ -1,4 +1,4 @@
-# Media Studio Ultimate 2.1
+# Media Studio Ultimate 2.2
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)
@@ -40,6 +40,13 @@ Beautiful Modern UI • Batch Processing • Visual Crop Editor • 60+ Format S
 - Support for both images and videos
 - Pixel-perfect accuracy with coordinate display
 
+### 🎭 Background Remover
+- **One-click background removal** using advanced AI (U2Net)
+- Drag and drop or open file
+- Instant preview of result
+- Batch compatible (via API, UI handles single file for now)
+- High-quality transparency output (PNG)
+
 ### 🎨 Video to GIF Maker
 - Convert any video segment to high-quality animated GIF
 - **Visual crop editor** for GIF output
@@ -80,7 +87,7 @@ git clone https://github.com/dat514/MediaStudioUltimate.git
 cd MediaStudioUltimate
 
 # Install dependencies
-pip install pywebview yt-dlp
+pip install pywebview yt-dlp qrcode pillow rembg
 
 # Run the application
 python main.py
@@ -162,6 +169,15 @@ sudo yum install ffmpeg  # CentOS/RHEL
 - Use FPS 10-15 for memes, 20-30 for smooth animations
 - Keep width under 600px for reasonable file sizes
 
+### 🎭 Background Remover
+
+1. **Click "BG Remover"** tab.
+2. **Click "Open Image"** and select your photo.
+3. **Click "Remove Background"**.
+   - *Note: First run downloads the AI model (~176MB).*
+4. **Preview** the transparent result.
+5. **Click "Download Result"** to save.
+
 ---
 
 ## 🔧 Advanced Features
@@ -210,7 +226,9 @@ echo ========================================
 echo.
 echo Installing required libraries...
 echo.
-pip install pywebview yt-dlp
+echo.
+pip install pywebview yt-dlp qrcode pillow rembg
+echo.
 echo.
 echo ========================================
 echo  Installation complete!
@@ -318,7 +336,7 @@ pause
 
 ## 📝 Changelog
 
-### Version 2.0 (Current)
+### Version 2.2 (Current)
 - ✨ Added Universal Converter with 60+ formats
 - ✨ Added Visual Editor with interactive crop
 - ✨ Added GIF Maker with trim and crop
@@ -327,6 +345,7 @@ pause
 - ✨ Real-time preview for all media
 - ✨ Added `install_libs.bat` for easy setup
 - ✨ Added `run.bat` for quick launch
+- 🎭 Added **Background Remover** with AI
 - 🎨 Modern dark theme UI redesign
 - 🎨 Smooth animations and transitions
 - 🐛 Various bug fixes and improvements
