@@ -1,4 +1,4 @@
-# Media Studio Ultimate 2.2
+# Media Studio Ultimate 2.3
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)
@@ -217,10 +217,10 @@ MediaStudioUltimate/
 ### `install_libs.bat` - First Time Setup
 ```batch
 @echo off
-title Install Dependencies - Media Studio Ultimate 2.0
+title Install Dependencies - Media Studio Ultimate 2.3
 color 0A
 echo ========================================
-echo  Media Studio Ultimate 2.0
+echo  Media Studio Ultimate 2.3
 echo  Dependency Installer
 echo ========================================
 echo.
@@ -244,10 +244,10 @@ pause
 ### `run.bat` - Quick Launcher
 ```batch
 @echo off
-title Media Studio Ultimate 2.0
+title Media Studio Ultimate 2.3
 color 0B
 echo ========================================
-echo  Media Studio Ultimate 2.0
+echo  Media Studio Ultimate 2.3
 echo  Starting application...
 echo ========================================
 echo.
@@ -336,7 +336,7 @@ pause
 
 ## 📝 Changelog
 
-### Version 2.2 (Current)
+### Version 2.3 (Current)
 - ✨ Added Universal Converter with 60+ formats
 - ✨ Added Visual Editor with interactive crop
 - ✨ Added GIF Maker with trim and crop
