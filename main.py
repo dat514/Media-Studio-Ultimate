@@ -5,7 +5,7 @@ import sys
 import os
 
 # Import modules
-from api import base, downloader, converter, editor, gif, shortener, bg_remover
+from api import base, downloader, converter, editor, gif, shortener, bg_remover, studio
 from server import run_server
 
 # Import UI (referenced by server, but good to ensure valid)
@@ -50,6 +50,14 @@ class Api:
     
     def remove_bg(self, src, model='isnet-general-use', alpha=False): 
         return bg_remover.remove_bg(src, model, alpha)
+
+    def studio_info(self, src):
+        return studio.get_media_info(src)
+        
+    def studio_process(self, args):
+        return studio.studio_process(args)
+
+
 
 def main():
     # Start Server in background thread

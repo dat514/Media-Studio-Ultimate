@@ -143,6 +143,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="tab" onclick="switchTab('gifmaker')" id="tab-btn-gifmaker">Video to GIF</div>
             <div class="tab" onclick="switchTab('shortener')" id="tab-btn-shortener">Links & QR</div>
             <div class="tab" onclick="switchTab('bgremover')" id="tab-btn-bgremover">BG Remover(Beta)</div>
+            <div class="tab" onclick="switchTab('studio')" id="tab-btn-studio">A/V Studio</div>
         </div>
     </div>
 
@@ -552,7 +553,184 @@ HTML_CONTENT = """<!DOCTYPE html>
             </div>
         </div>
     </div>
+
+    <!-- STUDIO SECTION (Advanced) -->
+    <div id="studio" class="section">
+        <div class="card">
+            <h2 style="text-align:center; color:var(--primary); margin-bottom:15px;">Advanced A/V Studio</h2>
+            
+            <!-- File Loader -->
+            <div id="std-loader" class="logo-upload-box" onclick="stdOpen()">
+                <div style="font-size:3em">🎵 / 🎬</div>
+                <div>Click to Open Audio or Video</div>
+            </div>
+            
+            <!-- Editor Interface -->
+            <div id="std-editor" style="display:none;">
+                <h3 id="std-filename" style="text-align:center; margin-bottom:10px;">filename.mp3</h3>
+                
+                <!-- PREVIEW -->
+                <div style="background:#000; padding:10px; border-radius:10px; text-align:center; margin-bottom:20px;">
+                    <video id="std-vid" controls style="width:100%; max-height:300px; display:none;"></video>
+                    <audio id="std-aud" controls style="width:100%; display:none;"></audio>
+                </div>
+                
+                <div class="row">
+                    <!-- LEFT COLUMN: Trim & Convert -->
+                    <div class="col">
+                        <label class="label-title">TRIM (Seconds)</label>
+                        <div style="display:flex; gap:10px; margin-bottom:20px;">
+                            <div style="flex:1">
+                                <span style="color:#888; font-size:0.8em;">Start</span>
+                                <input type="number" id="std-start" value="0" step="0.1" class="input-box" style="padding:10px;">
+                            </div>
+                            <div style="flex:1">
+                                <span style="color:#888; font-size:0.8em;">End</span>
+                                <input type="number" id="std-end" value="0" step="0.1" class="input-box" style="padding:10px;">
+                            </div>
+                        </div>
+                        
+                        <label class="label-title">FORMAT</label>
+                        <select id="std-fmt" class="select-style">
+                            <optgroup label="Audio">
+                                <option value="mp3">MP3 (Universal)</option>
+                                <option value="m4r">iPhone Ringtone</option>
+                                <option value="wav">WAV (Lossless)</option>
+                                <option value="flac">FLAC</option>
+                            </optgroup>
+                            <optgroup label="Video">
+                                <option value="mp4">MP4 (Universal)</option>
+                                <option value="mkv">MKV</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <!-- RIGHT COLUMN: Effects -->
+                    <div class="col">
+                        <label class="label-title">EFFECTS</label>
+                        <div style="background:#1a1f2e; padding:15px; border-radius:10px; margin-bottom:15px;">
+                            <label style="display:flex; align-items:center; margin-bottom:10px; cursor:pointer;">
+                                <input type="checkbox" id="std-fade-in" style="width:18px; height:18px; margin-right:10px; accent-color:var(--primary);">
+                                Fade In (3s)
+                            </label>
+                            <label style="display:flex; align-items:center; cursor:pointer;">
+                                <input type="checkbox" id="std-fade-out" style="width:18px; height:18px; margin-right:10px; accent-color:var(--primary);">
+                                Fade Out (3s)
+                            </label>
+                        </div>
+                        
+                        <label class="label-title">AUDIO MOD (0.5x - 2.0x)</label>
+                        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+                            <span style="width:60px;">Volume:</span>
+                            <input type="range" id="std-vol" min="0" max="2" step="0.1" value="1" style="flex:1; accent-color:var(--primary);">
+                            <span id="std-vol-val">1.0x</span>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span style="width:60px;">Speed:</span>
+                            <input type="range" id="std-spd" min="0.5" max="2" step="0.5" value="1" style="flex:1; accent-color:var(--primary);">
+                            <span id="std-spd-val">1.0x</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top:20px; border-top:1px solid #333; padding-top:20px; text-align:right;">
+                    <span id="std-status" class="status-text" style="margin-right:20px;"></span>
+                    <button class="btn" onclick="stdProcess()">Process & Save</button>
+                    <button class="btn btn-secondary" onclick="stdReset()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <script>
+    // --- STUDIO LOGIC ---
+    let stdFile = null;
+    let stdDur = 0;
+    
+    // UI Helpers
+    document.getElementById('std-vol').oninput = function() { document.getElementById('std-vol-val').innerText = this.value + 'x'; };
+    document.getElementById('std-spd').oninput = function() { document.getElementById('std-spd-val').innerText = this.value + 'x'; };
+
+    async function stdOpen() {
+        const f = await window.pywebview.api.choose_files(false);
+        if(f && f.length) {
+            stdFile = f[0];
+            document.getElementById('std-loader').style.display = 'none';
+            document.getElementById('std-editor').style.display = 'block';
+            document.getElementById('std-filename').innerText = stdFile.split(/[\\\\/]/).pop();
+            
+            // Get Info
+            const info = await window.pywebview.api.studio_info(stdFile);
+            if(info.success) {
+                stdDur = info.duration;
+                document.getElementById('std-end').value = stdDur.toFixed(1);
+                document.getElementById('std-start').value = 0;
+                
+                // Show Player
+                const url = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(stdFile);
+                const vid = document.getElementById('std-vid');
+                const aud = document.getElementById('std-aud');
+                
+                vid.pause(); aud.pause();
+                
+                if(info.type === 'video') {
+                     vid.src = url; vid.style.display = 'block'; aud.style.display = 'none';
+                } else {
+                     aud.src = url; aud.style.display = 'block'; vid.style.display = 'none';
+                }
+            } else {
+                alert("Error reading file: " + info.error);
+                stdReset();
+            }
+        }
+    }
+    
+    function stdReset() {
+        stdFile = null;
+        document.getElementById('std-editor').style.display = 'none';
+        document.getElementById('std-loader').style.display = 'block';
+        document.getElementById('std-vid').pause();
+        document.getElementById('std-aud').pause();
+        document.getElementById('std-vid').src = "";
+        document.getElementById('std-aud').src = "";
+    }
+    
+    async function stdProcess() {
+        if(!stdFile) return;
+        const folder = await window.pywebview.api.choose_folder();
+        if(!folder) return;
+        
+        document.getElementById('std-status').innerText = "Processing using FFmpeg...";
+        
+        const args = {
+            src: stdFile,
+            folder: folder,
+            format: document.getElementById('std-fmt').value,
+            trim: {
+                start: document.getElementById('std-start').value,
+                end: document.getElementById('std-end').value
+            },
+            fade: {
+                in: document.getElementById('std-fade-in').checked,
+                out: document.getElementById('std-fade-out').checked,
+                duration: 3.0
+            },
+            audio: {
+                volume: document.getElementById('std-vol').value,
+                speed: document.getElementById('std-spd').value
+            },
+            type: (document.getElementById('std-vid').style.display === 'block') ? 'video' : 'audio'
+        };
+        
+        const res = await window.pywebview.api.studio_process(JSON.stringify(args));
+        
+        if(res.success) {
+            document.getElementById('std-status').innerText = "Done! Saved to folder.";
+        } else {
+            document.getElementById('std-status').innerText = "Error: " + res.error;
+        }
+    }
+
     function switchTab(id) {
         document.querySelectorAll('.section').forEach(e => e.classList.remove('active'));
         document.querySelectorAll('.tab').forEach(e => e.classList.remove('active'));
