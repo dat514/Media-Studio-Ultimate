@@ -628,7 +628,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                             <div style="background:#222; padding:15px; border-radius:10px;">
                                 <label class="label-title">Technical Metrics</label>
                                 <div style="font-size:0.95em; color:#ccc;">
-                                    <div style="display:flex; justify-content:space-between;"><span>MP3 Profile:</span> <span id="wa-mp3" style="color:#00aaff">-</span></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Bandwidth Util:</span> <span id="wa-mp3" style="color:#00aaff">-</span></div>
                                     <div style="display:flex; justify-content:space-between;"><span>Slope Metric:</span> <span id="wa-slope" style="color:#fff">-</span></div>
                                     <div style="display:flex; justify-content:space-between;"><span>Bandwidth:</span> <span id="wa-bw" style="color:#fff">-</span></div>
                                     <div style="display:flex; justify-content:space-between;"><span>Dyn Range:</span> <span id="wa-dr" style="color:#fff">-</span></div>

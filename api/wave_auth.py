@@ -137,19 +137,15 @@ def analyze_audio_segment(y, sr):
     }
 
 def estimate_mp3_profile(metrics):
-    bw = metrics['bandwidth_ratio']
-    slope = metrics['slope_metric']
+    # Renamed concept to Bandwidth Util, keeping function name for safety or just replacing logic
+    # The plan said rename, but keeping the name 'estimate_mp3_profile' helps avoid missed references if I missed any.
+    # However, to be clean and follow the plan, I will rename it and update the caller.
+    pass
 
-    if bw < 0.78:
-        return "Likely MP3 ~128 kbps"
-    elif bw < 0.86:
-        return "Likely MP3 ~192 kbps"
-    elif bw < 0.92:
-        return "Likely MP3 ~256 kbps"
-    elif bw < 0.96 and slope < 0.09:
-        return "Likely MP3 ~320 kbps"
-    else:
-        return "Not MP3-like / True Lossless"
+def get_bandwidth_display(metrics):
+    bw = metrics['bandwidth_ratio']
+    # Format as percentage with 1 decimal place
+    return f"{bw * 100:.1f}%"
 
 def calculate_enterprise_score(metrics):
     score = 0
@@ -234,7 +230,7 @@ def analyze_audio(file_path):
         
         
         score, reasons, verdict = calculate_enterprise_score(metrics)
-        mp3_guess = estimate_mp3_profile(metrics)
+        mp3_guess = get_bandwidth_display(metrics)
         
         
         plt.figure(figsize=(10, 4))
