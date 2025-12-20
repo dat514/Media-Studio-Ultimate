@@ -48,8 +48,8 @@ class Api:
     def save_qr_cleanup(self, src, folder): 
         return shortener.save_qr_cleanup(src, folder)
     
-    def remove_bg(self, src, model='isnet-general-use', alpha=False): 
-        return bg_remover.remove_bg(src, model, alpha)
+    def remove_bg(self, src, model='isnet-general-use', mode='remove_bg', blur_radius=15, new_bg_path=None):
+        return bg_remover.remove_bg(src, model, mode, blur_radius, new_bg_path)
 
     def studio_info(self, src):
         return studio.get_media_info(src)
@@ -60,6 +60,10 @@ class Api:
 
 
 def main():
+    # Cleanup temp files from previous sessions (handles crashes)
+    from api.bg_remover import cleanup_temp
+    cleanup_temp()
+    
     # Start Server in background thread
     t = threading.Thread(target=run_server, daemon=True)
     t.start()
