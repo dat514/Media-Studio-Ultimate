@@ -137,14 +137,10 @@ def analyze_audio_segment(y, sr):
     }
 
 def estimate_mp3_profile(metrics):
-    # Renamed concept to Bandwidth Util, keeping function name for safety or just replacing logic
-    # The plan said rename, but keeping the name 'estimate_mp3_profile' helps avoid missed references if I missed any.
-    # However, to be clean and follow the plan, I will rename it and update the caller.
     pass
 
 def get_bandwidth_display(metrics):
     bw = metrics['bandwidth_ratio']
-    # Format as percentage with 1 decimal place
     return f"{bw * 100:.1f}%"
 
 def calculate_enterprise_score(metrics):

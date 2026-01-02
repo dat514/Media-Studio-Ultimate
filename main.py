@@ -38,6 +38,14 @@ class Api:
         return shortener.save_qr_cleanup(src, folder)
     def remove_bg(self, src, model='isnet-general-use', mode='remove_bg', blur_radius=15, new_bg_path=None):
         return bg_remover.remove_bg(src, model, mode, blur_radius, new_bg_path)
+    def bg_edit(self, session_id, strokes, display_size):
+        return bg_remover.edit_mask(session_id, strokes, display_size)
+    def bg_undo(self, session_id):
+        return bg_remover.undo(session_id)
+    def bg_redo(self, session_id):
+        return bg_remover.redo(session_id)
+    def bg_save_export(self, session_id, folder):
+        return bg_remover.save_result(session_id, folder)
     def wa_analyze(self, path):
         return wave_auth.analyze_audio(path)
     def wa_history(self):

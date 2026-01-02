@@ -522,7 +522,8 @@ HTML_CONTENT = """<!DOCTYPE html>
                     <div class="editor-container" style="background:#000 url('data:image/svg+xml;utf8,<svg width=\\'20\\' height=\\'20\\' xmlns=\\'http://www.w3.org/2000/svg\\'><rect x=\\'0\\' y=\\'0\\' width=\\'10\\' height=\\'10\\' fill=\\'%23333\\'/><rect x=\\'10\\' y=\\'10\\' width=\\'10\\' height=\\'10\\' fill=\\'%23333\\' /></svg>');">
                         <span id="bg-ph" style="color:#fff; background:rgba(0,0,0,0.5); padding:10px; border-radius:5px;">Select an image to remove background</span>
                         <img id="bg-preview" class="media-preview" style="display:none">
-                        <img id="bg-result" class="media-preview" style="display:none; position:absolute; top:0; left:0;">
+                        <img id="bg-result" class="media-preview" style="display:none; position:absolute; top:0; left:0; pointer-events:none;">
+                         <canvas id="bg-canvas" width="800" height="600" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none; cursor:crosshair; pointer-events:auto; touch-action:none; z-index:100;"></canvas>
                     </div>
                 </div>
                 <div class="col">
@@ -542,6 +543,27 @@ HTML_CONTENT = """<!DOCTYPE html>
                                      <input type="checkbox" id="bg-alpha" style="width:18px; height:18px; margin-right:10px; accent-color:var(--primary);">
                                      <span style="font-size:1em; color:#ddd;">Enable Alpha Matting</span>
                                  </label>
+                             </div>
+                         </div>
+                         
+                         <!-- BRUSH TOOLS -->
+                         <div id="bg-tools" style="display:none; margin-bottom:15px; text-align:left; background:#1a1f2e; padding:15px; border-radius:10px; border:1px solid #333;">
+                             <label class="label-title">Manual Refine (Brush)</label>
+                             
+                             <div class="row" style="margin-bottom:10px; gap:5px;">
+                                 <button class="btn btn-sm active" id="btn-tool-brush" onclick="setBgTool('restore')" style="flex:1; background:#444;">Restore</button>
+                                 <button class="btn btn-sm" id="btn-tool-erase" onclick="setBgTool('erase')" style="flex:1; background:#222;">Erase</button>
+                             </div>
+                             
+                             <label class="label-title" style="font-size:0.85em;">Brush Size</label>
+                             <div class="row" style="align-items:center;">
+                                 <input type="range" id="bg-brush-size" min="5" max="100" value="20" style="flex:1; margin-right:10px;">
+                                 <b id="bg-brush-val" style="color:#ddd;">20</b>
+                             </div>
+                             
+                             <div class="row" style="margin-top:10px; gap:5px;">
+                                 <div class="col"><button class="btn btn-sm btn-secondary" onclick="bg_undo()" style="width:100%">Undo</button></div>
+                                 <div class="col"><button class="btn btn-sm btn-secondary" onclick="bg_redo()" style="width:100%">Redo</button></div>
                              </div>
                          </div>
                          
@@ -1324,6 +1346,10 @@ HTML_CONTENT = """<!DOCTYPE html>
     // --- BACKGROUND REMOVER ---
     let bgFile = null;
     let bgResultPath = null;
+    let bgSessionId = null;
+    let bgTool = 'restore'; // 'restore' or 'erase'
+    let bgIsDrawing = false;
+    let bgStrokePoints = [];
     
     async function bg_open() {
         const f = await window.pywebview.api.choose_files(false);
@@ -1336,6 +1362,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             
             document.getElementById('btn-bg-process').disabled = false;
             document.getElementById('btn-bg-save').disabled = true;
+            document.getElementById('bg-tools').style.display = 'none';
+            document.getElementById('bg-canvas').style.display = 'none';
             document.getElementById('bg-status').innerText = "Ready to process.";
         }
     }
@@ -1343,21 +1371,30 @@ HTML_CONTENT = """<!DOCTYPE html>
     async function bg_process() {
         if(!bgFile) return;
         
-        // NEW: Get params
         const model = document.getElementById('bg-model').value;
-        const alpha = document.getElementById('bg-alpha').checked;
+        const alpha = document.getElementById('bg-alpha').checked; // Kept for future compatibility
         
         document.getElementById('bg-status').innerText = "Processing... (Loading " + model + "...)";
         document.getElementById('btn-bg-process').disabled = true;
         
-        const res = await window.pywebview.api.remove_bg(bgFile, model, alpha);
+        // Pass mode='remove_bg' explicitly
+        const res = await window.pywebview.api.remove_bg(bgFile, model, 'remove_bg');
         
         if(res.success) {
             bgResultPath = res.path;
-            document.getElementById('bg-result').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(res.path) + "&t=" + new Date().getTime();
-            document.getElementById('bg-preview').style.display = 'none'; // Hide original
+            bgSessionId = res.session_id; // Capture session ID
+            
+            const timeToken = new Date().getTime();
+            document.getElementById('bg-result').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(res.path) + "&t=" + timeToken;
+            document.getElementById('bg-preview').style.display = 'none'; 
             document.getElementById('bg-result').style.display = 'block';
-            document.getElementById('bg-status').innerText = "Background Removed!";
+            
+            // Enable Tools
+            document.getElementById('bg-tools').style.display = 'block';
+            document.getElementById('bg-canvas').style.display = 'block';
+            initBgCanvas();
+            
+            document.getElementById('bg-status').innerText = "Background Removed! Use tools to refine.";
             document.getElementById('btn-bg-save').disabled = false;
         } else {
              document.getElementById('bg-status').innerText = "Error: " + res.error;
@@ -1365,12 +1402,296 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
     }
     
+    // Brush Tool Logic
+    function setBgTool(mode) {
+        bgTool = mode;
+        document.getElementById('btn-tool-brush').className = mode === 'restore' ? 'btn btn-sm active' : 'btn btn-sm';
+        document.getElementById('btn-tool-erase').className = mode === 'erase' ? 'btn btn-sm active' : 'btn btn-sm';
+        
+        // Visual feedback
+        const btnB = document.getElementById('btn-tool-brush');
+        const btnE = document.getElementById('btn-tool-erase');
+        btnB.style.background = mode === 'restore' ? '#444' : '#222';
+        btnE.style.background = mode === 'erase' ? '#444' : '#222';
+    }
+    
+    function initBgCanvas() {
+        const c = document.getElementById('bg-canvas');
+        const img = document.getElementById('bg-result');
+        const container = document.querySelector('#bgremover .editor-container');
+        
+        // Hàm tính toán vị trí và kích thước canvas khớp với ảnh
+        const updateCanvasSize = () => {
+            const w = img.naturalWidth;
+            const h = img.naturalHeight;
+            const cw = container.clientWidth;
+            const ch = container.clientHeight;
+            
+            if(!w || !h) return;
+            
+            // Tính scale để fit ảnh vào container (object-fit: contain)
+            const scale = Math.min(cw / w, ch / h);
+            const displayW = w * scale;
+            const displayH = h * scale;
+            
+            // Tính offset để center ảnh
+            const left = (cw - displayW) / 2;
+            const top = (ch - displayH) / 2;
+            
+            // Set canvas position và size khớp với ảnh hiển thị
+            c.style.position = 'absolute';
+            c.style.left = left + 'px';
+            c.style.top = top + 'px';
+            c.width = displayW;
+            c.height = displayH;
+            c.style.width = displayW + 'px';
+            c.style.height = displayH + 'px';
+            
+            // Lưu thông tin để dùng sau
+            c.dataset.displayWidth = displayW;
+            c.dataset.displayHeight = displayH;
+            c.dataset.naturalWidth = w;
+            c.dataset.naturalHeight = h;
+        };
+        
+        // Chạy khi ảnh load xong
+        if(img.complete && img.naturalWidth > 0) {
+            updateCanvasSize();
+        }
+        img.addEventListener('load', updateCanvasSize);
+        
+        // Theo dõi resize
+        const observer = new ResizeObserver(updateCanvasSize);
+        observer.observe(container);
+        
+        // Clear canvas
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, c.width, c.height);
+        
+        // Chỉ bind events một lần
+        if(c.dataset.bound) return;
+        c.dataset.bound = 'true';
+        
+        // Mouse events
+        c.addEventListener('mousedown', startDraw);
+        c.addEventListener('mousemove', draw);
+        c.addEventListener('mouseup', endDraw);
+        c.addEventListener('mouseleave', endDraw);
+        
+        // Touch events cho mobile
+        c.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            c.dispatchEvent(mouseEvent);
+        });
+        
+        c.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            c.dispatchEvent(mouseEvent);
+        });
+        
+        c.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            c.dispatchEvent(mouseEvent);
+        });
+        
+        // Brush size slider
+        document.getElementById('bg-brush-size').addEventListener('input', (e) => {
+            document.getElementById('bg-brush-val').innerText = e.target.value;
+        });
+    }
+    
+    function startDraw(e) {
+        if(!bgSessionId) return;
+        
+        bgIsDrawing = true;
+        bgStrokePoints = [];
+        
+        // Vẽ điểm đầu tiên
+        const c = document.getElementById('bg-canvas');
+        const rect = c.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        bgStrokePoints.push([Math.round(x), Math.round(y)]);
+        
+        // Vẽ một chấm tròn tại vị trí click
+        const ctx = c.getContext('2d');
+        const size = parseInt(document.getElementById('bg-brush-size').value);
+        
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.globalAlpha = 0.5;
+        
+        ctx.fillStyle = bgTool === 'restore' ? 'rgba(0, 255, 100, 1)' : 'rgba(255, 50, 50, 1)';
+        ctx.beginPath();
+        ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    function draw(e) {
+        if(!bgIsDrawing) return;
+        
+        const c = document.getElementById('bg-canvas');
+        const rect = c.getBoundingClientRect();
+        
+        // Tọa độ tương đối canvas
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Kiểm tra trong bounds
+        if(x < 0 || y < 0 || x > c.width || y > c.height) return;
+        
+        const lastPoint = bgStrokePoints[bgStrokePoints.length - 1];
+        const distance = lastPoint ? Math.sqrt(Math.pow(x - lastPoint[0], 2) + Math.pow(y - lastPoint[1], 2)) : 0;
+        
+        // Chỉ thêm point nếu di chuyển đủ xa (tránh spam)
+        if(distance > 2 || bgStrokePoints.length === 0) {
+            bgStrokePoints.push([Math.round(x), Math.round(y)]);
+        } else {
+            return; // Không vẽ nếu quá gần điểm trước
+        }
+        
+        const ctx = c.getContext('2d');
+        const size = parseInt(document.getElementById('bg-brush-size').value);
+        
+        ctx.globalAlpha = 0.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = size;
+        ctx.strokeStyle = bgTool === 'restore' ? 'rgba(0, 255, 100, 1)' : 'rgba(255, 50, 50, 1)';
+        
+        // Vẽ đường nối
+        if(bgStrokePoints.length >= 2) {
+            const prev = bgStrokePoints[bgStrokePoints.length - 2];
+            ctx.beginPath();
+            ctx.moveTo(prev[0], prev[1]);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+    }
+    
+    async function endDraw() {
+        if(!bgIsDrawing) return;
+        bgIsDrawing = false;
+        
+        if(bgStrokePoints.length === 0) return;
+        
+        const c = document.getElementById('bg-canvas');
+        const size = parseInt(document.getElementById('bg-brush-size').value);
+        
+        // Lấy kích thước display và natural từ dataset
+        const displayW = parseFloat(c.dataset.displayWidth);
+        const displayH = parseFloat(c.dataset.displayHeight);
+        
+        if(!displayW || !displayH) {
+            console.error('Canvas size not initialized');
+            return;
+        }
+        
+        // Gửi stroke về backend
+        const stroke = {
+            points: bgStrokePoints,
+            mode: bgTool, // 'restore' hoặc 'erase'
+            radius: size
+        };
+        
+        const displaySize = [Math.round(displayW), Math.round(displayH)];
+        
+        document.getElementById('bg-status').innerText = "Applying stroke...";
+        
+        try {
+            const res = await window.pywebview.api.bg_edit(bgSessionId, [stroke], displaySize);
+            
+            if(res.success) {
+                // Cập nhật preview
+                if(res.preview) {
+                    const img = document.getElementById('bg-result');
+                    if(res.preview.startsWith('data:')) {
+                        img.src = res.preview;
+                    } else {
+                        img.src = "data:image/png;base64," + res.preview;
+                    }
+                    
+                    // Chờ ảnh load xong rồi mới clear canvas
+                    img.onload = () => {
+                        const ctx = c.getContext('2d');
+                        ctx.clearRect(0, 0, c.width, c.height);
+                    };
+                } else {
+                    // Nếu không có preview, vẫn GIỮ canvas để user thấy được nét vẽ
+                    console.warn('No preview returned from server');
+                }
+                
+                document.getElementById('bg-status').innerText = "Stroke applied successfully.";
+            } else {
+                document.getElementById('bg-status').innerText = "Failed: " + (res.error || "Unknown error");
+                // Vẫn giữ canvas khi lỗi để user thấy được họ đã vẽ gì
+            }
+        } catch(error) {
+            console.error('Edit failed:', error);
+            document.getElementById('bg-status').innerText = "Error applying stroke";
+            // Vẫn giữ canvas khi lỗi
+        }
+        
+        // KHÔNG clear canvas ở đây nữa - chỉ clear khi có ảnh mới load xong
+        // Điều này cho phép user thấy nét vẽ của mình trong khi chờ server xử lý
+        
+        // Reset stroke points
+        bgStrokePoints = [];
+    }
+    
+    async function bg_undo() {
+        if(!bgSessionId) return;
+        const res = await window.pywebview.api.bg_undo(bgSessionId);
+        handleEditRes(res, "Undo");
+    }
+    
+    async function bg_redo() {
+        if(!bgSessionId) return;
+        const res = await window.pywebview.api.bg_redo(bgSessionId);
+        handleEditRes(res, "Redo");
+    }
+    
+    function handleEditRes(res, action) {
+        if(res.success) {
+            if(res.preview) { // Check if we have a preview
+                 if(res.preview.startsWith('data:')) {
+                     document.getElementById('bg-result').src = res.preview;
+                 } else {
+                     document.getElementById('bg-result').src = "data:image/png;base64," + res.preview;
+                 }
+            }
+            document.getElementById('bg-status').innerText = action + " successful.";
+        } else {
+            document.getElementById('bg-status').innerText = action + " failed: " + res.error;
+        }
+    }
+    
     async function bg_save() {
-        if(!bgResultPath) return;
+        if(!bgResultPath && !bgSessionId) return;
+        
         const folder = await window.pywebview.api.choose_folder();
         if(folder) {
-             const res = await window.pywebview.api.save_qr_cleanup(bgResultPath, folder);
-             if(res.success) alert("Saved!");
+             if(bgSessionId) {
+                 const res = await window.pywebview.api.bg_save_export(bgSessionId, folder);
+                 if(res.success) alert("Saved to " + res.path);
+                 else alert("Save failed: " + res.error);
+             } else {
+                 // Fallback
+                 const res = await window.pywebview.api.save_qr_cleanup(bgResultPath, folder);
+                 if(res.success) alert("Saved!");
+             }
         }
     }
     // --- WAVEAUTH START v4.0 ---
