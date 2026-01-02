@@ -446,7 +446,8 @@ pause
 
 ## 📄 License
 
-MIT License © 2025 dat514/lienquan12
+MIT License © 2025 [dat514](https://github.com/dat514) [lquan](https://github.com/lquan-tech)
+
 
 ---
 
