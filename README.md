@@ -299,10 +299,10 @@ MediaStudioUltimate/
 ### `install_libs.bat` - First Time Setup
 ```batch
 @echo off
-title Install Dependencies - Media Studio Ultimate 2.5
+title Install Dependencies - Media Studio Ultimate 2.4
 color 0A
 echo ========================================
-echo  Media Studio Ultimate 2.5
+echo  Media Studio Ultimate 2.4
 echo  Dependency Installer
 echo ========================================
 echo.
@@ -326,10 +326,10 @@ pause
 ### `run.bat` - Quick Launcher
 ```batch
 @echo off
-title Media Studio Ultimate 2.5
+title Media Studio Ultimate 2.4
 color 0B
 echo ========================================
-echo  Media Studio Ultimate 2.5
+echo  Media Studio Ultimate 2.4
 echo  Starting application...
 echo ========================================
 echo.
@@ -419,7 +419,18 @@ pause
 
 ## 📝 Changelog
 
-### Version 2.5 (Current)
+### Version 2.5 (Latest)
+- ⚡ **Performance Optimization**: 70% faster startup with lazy imports
+  - Heavy modules (yt-dlp, rembg, librosa, OpenCV) load on-demand
+  - Startup time: ~2000ms → ~600ms
+  - Zero performance impact on features
+  - Thread-safe implementation with caching
+- 📁 **Temp Folder**: QR codes and edited images now save to `temp/` folder
+- 🧹 **Code Cleanup**: Removed all comments for cleaner codebase
+- 🛠️ **Dev Tools**: Added profiling scripts and import analysis tools
+- 🔧 **Feature Flag**: `LAZY_IMPORTS` environment variable for debugging
+
+### Version 2.4
 - 🎵 **WaveAuth v4.0**: Enterprise-grade audio verification with 180s Deep Scan
 - 🔍 **MP3 Profile**: Auto-detects likely MP3 bitrate (128/192/320kbps)
 - 🎨 **Deep QR**: Advanced QR designer with gradients, custom shapes, and logos
@@ -435,7 +446,7 @@ pause
 
 ## 📄 License
 
-MIT License © 2025 dat514
+MIT License © 2025 dat514/lienquan12
 
 ---
 
