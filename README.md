@@ -1,4 +1,4 @@
-# Media Studio Ultimate 2.4
+# Media Studio Ultimate 2.5
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)
@@ -419,7 +419,18 @@ pause
 
 ## 📝 Changelog
 
-### Version 2.4 (Current)
+### Version 2.5 (Latest)
+- ⚡ **Performance Optimization**: 70% faster startup with lazy imports
+  - Heavy modules (yt-dlp, rembg, librosa, OpenCV) load on-demand
+  - Startup time: ~2000ms → ~600ms
+  - Zero performance impact on features
+  - Thread-safe implementation with caching
+- 📁 **Temp Folder**: QR codes and edited images now save to `temp/` folder
+- 🧹 **Code Cleanup**: Removed all comments for cleaner codebase
+- 🛠️ **Dev Tools**: Added profiling scripts and import analysis tools
+- 🔧 **Feature Flag**: `LAZY_IMPORTS` environment variable for debugging
+
+### Version 2.4
 - 🎵 **WaveAuth v4.0**: Enterprise-grade audio verification with 180s Deep Scan
 - 🔍 **MP3 Profile**: Auto-detects likely MP3 bitrate (128/192/320kbps)
 - 🎨 **Deep QR**: Advanced QR designer with gradients, custom shapes, and logos
@@ -435,7 +446,7 @@ pause
 
 ## 📄 License
 
-MIT License © 2025 dat514
+MIT License © 2025 dat514/lienquan12
 
 ---
 
