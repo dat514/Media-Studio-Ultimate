@@ -13,7 +13,7 @@ HTML_CONTENT = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Media Studio Ultimate 2.2</title>
+<title>Media Studio Ultimate 2.4</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     :root { --primary:#ff0055; --bg:#0a0e17; --card:#151b2e; --text:#fff; --text-dim:#999; }
@@ -135,7 +135,7 @@ HTML_CONTENT = """<!DOCTYPE html>
         <div style="position:absolute; top:20px; right:20px;">
            <button class="btn btn-sm btn-secondary" onclick="updateLibs()">Update Core</button>
         </div>
-        <h1>Media Studio Ultimate 2.2</h1>
+        <h1>Media Studio Ultimate 2.4</h1>
         <div class="tabs">
             <div class="tab active" onclick="switchTab('downloader')" id="tab-btn-downloader">Downloader</div>
             <div class="tab" onclick="switchTab('converter')" id="tab-btn-converter">Converter</div>
@@ -143,6 +143,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             <div class="tab" onclick="switchTab('gifmaker')" id="tab-btn-gifmaker">Video to GIF</div>
             <div class="tab" onclick="switchTab('shortener')" id="tab-btn-shortener">Links & QR</div>
             <div class="tab" onclick="switchTab('bgremover')" id="tab-btn-bgremover">BG Remover(Beta)</div>
+            <div class="tab" onclick="switchTab('waveauth')" id="tab-btn-waveauth">WaveAuth</div>
         </div>
     </div>
 
@@ -162,7 +163,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                             <option value="audio">Audio (MP3/WAV)</option>
                         </select>
                         
-                        <!-- Video Options -->
+
                         <div id="dl-opt-video" class="row" style="margin-top:10px;">
                             <div class="col">
                                 <label class="label-title">Resolution</label>
@@ -185,7 +186,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                             </div>
                         </div>
 
-                        <!-- Audio Options -->
+
                         <div id="dl-opt-audio" class="row" style="margin-top:10px; display:none;">
                             <div class="col">
                                 <label class="label-title">Audio Format</label>
@@ -203,8 +204,23 @@ HTML_CONTENT = """<!DOCTYPE html>
                                 </select>
                             </div>
                         </div>
+
+                        <div id="dl-opt-cover" class="row" style="margin-top:15px; background:#1a1f2e; padding:15px; border-radius:10px; border:1px solid #333;">
+                             <label class="label-title" style="width:100%">Cover Art (Optional)</label>
+                             <div class="col" style="flex:0 0 auto;">
+                                 <div id="cover-placeholder" style="width:100px; height:100px; border:2px dashed #444; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#666; font-size:2em; cursor:pointer; background:#222;" onclick="selectCoverArt()">+</div>
+                                 <img id="cover-preview" style="width:100px; height:100px; object-fit:cover; border-radius:8px; display:none; border:1px solid #444;">
+                             </div>
+                             <div class="col">
+                                 <div style="margin-bottom:5px; font-size:0.9em; color:#ddd;">Embed custom album art into your downloaded file.</div>
+                                 <button class="btn btn-sm btn-secondary" onclick="selectCoverArt()">Select Image</button>
+                                 <button class="btn btn-sm btn-secondary" onclick="clearCoverArt()" style="background:#442222; margin-left:5px;">Remove</button>
+                                 <div style="font-size:0.8em; color:#888; margin-top:8px;">Supports JPG/PNG. Auto-resized to fit.</div>
+                                 <input type="hidden" id="dl-cover-path">
+                             </div>
+                        </div>
                         
-                        <!-- Playlist Mode -->
+
                         <div id="dl-playlist-info" style="display:none; margin-top:15px; padding:15px; background:#222; border-radius:10px; border-left:4px solid var(--primary);">
                             <div style="font-weight:bold; margin-bottom:5px; color:var(--primary);">📋 Playlist Detected</div>
                             <div id="pl-title" style="margin-bottom:3px;"></div>
@@ -246,14 +262,14 @@ HTML_CONTENT = """<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- FORMAT SELECTION MODAL -->
+
     <div id="fmt-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeFmtModal()">&times;</span>
             <h2 style="text-align:center; margin-bottom:20px;">Select Target Format</h2>
             <input type="text" id="fmt-search-input" class="fmt-search" placeholder="Search format (e.g. mp3, mov, image)..." onkeyup="filterFormats()">
             <div id="fmt-container">
-                <!-- Populated by JS -->
+
             </div>
         </div>
     </div>
@@ -390,7 +406,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             </div>
         </div>
         
-        <!-- MERGED QR DESIGNER -->
+
         <div id="qr-section-inner" style="margin-top:40px; border-top:1px solid #333; padding-top:20px;">
              <h2 style="text-align:center; margin-bottom:20px; color:var(--primary);">Advanced QR Designer</h2>
              <div class="qr-container">
@@ -404,13 +420,13 @@ HTML_CONTENT = """<!DOCTYPE html>
                     </div>
                     
                     <div class="config-body">
-                        <!-- CONTENT TAB -->
+
                         <div id="qt-content" class="config-tab active">
                             <label class="label-title">Website URL or Text</label>
                             <textarea id="avr-data" class="input-box" rows="5" placeholder="https://example.com" oninput="debounceAvr()"></textarea>
                         </div>
                         
-                        <!-- SHAPES TAB -->
+
                         <div id="qt-shapes" class="config-tab">
                             <label class="label-title">Data Modules</label>
                             <div class="shape-grid">
@@ -442,7 +458,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                             <input type="hidden" id="avr-shape" value="square">
                         </div>
                         
-                        <!-- COLORS TAB -->
+
                         <div id="qt-colors" class="config-tab">
                             <label class="label-title">Color Mode</label>
                             <div class="color-toggle">
@@ -483,7 +499,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                             </div>
                         </div>
                         
-                        <!-- LOGO TAB -->
+
                         <div id="qt-logo" class="config-tab">
                              <label class="label-title">Upload Logo</label>
                              <div class="logo-upload-box" onclick="uploadAvrLogo()">
@@ -495,7 +511,7 @@ HTML_CONTENT = """<!DOCTYPE html>
                     </div>
                 </div>
                 
-                <!-- RIGHT PREVIEW -->
+
                 <div class="qr-preview">
                     <h3 style="margin-bottom:20px; color:#aaa;">Preview</h3>
                     <div class="preview-box">
@@ -521,13 +537,14 @@ HTML_CONTENT = """<!DOCTYPE html>
                     <div class="editor-container" style="background:#000 url('data:image/svg+xml;utf8,<svg width=\\'20\\' height=\\'20\\' xmlns=\\'http://www.w3.org/2000/svg\\'><rect x=\\'0\\' y=\\'0\\' width=\\'10\\' height=\\'10\\' fill=\\'%23333\\'/><rect x=\\'10\\' y=\\'10\\' width=\\'10\\' height=\\'10\\' fill=\\'%23333\\' /></svg>');">
                         <span id="bg-ph" style="color:#fff; background:rgba(0,0,0,0.5); padding:10px; border-radius:5px;">Select an image to remove background</span>
                         <img id="bg-preview" class="media-preview" style="display:none">
-                        <img id="bg-result" class="media-preview" style="display:none; position:absolute; top:0; left:0;">
+                        <img id="bg-result" class="media-preview" style="display:none; position:absolute; top:0; left:0; pointer-events:none;">
+                         <canvas id="bg-canvas" width="800" height="600" style="position:absolute; top:0; left:0; width:100%; height:100%; display:none; cursor:crosshair; pointer-events:auto; touch-action:none; z-index:100;"></canvas>
                     </div>
                 </div>
                 <div class="col">
                      <button class="btn" style="width:100%" onclick="bg_open()">Open Image</button>
                      <div style="margin:20px 0; text-align:center;">
-                         <!-- UPDATED CONTROLS -->
+                         
                          <div style="margin-bottom:15px; text-align:left; background:#1a1f2e; padding:15px; border-radius:10px; border:1px solid #333;">
                              <label class="label-title">AI Model</label>
                              <select id="bg-model" class="select-style">
@@ -544,10 +561,142 @@ HTML_CONTENT = """<!DOCTYPE html>
                              </div>
                          </div>
                          
+                         <!-- BRUSH TOOLS -->
+                         <div id="bg-tools" style="display:none; margin-bottom:15px; text-align:left; background:#1a1f2e; padding:15px; border-radius:10px; border:1px solid #333;">
+                             <label class="label-title">Manual Refine (Brush)</label>
+                             
+                             <div class="row" style="margin-bottom:10px; gap:5px;">
+                                 <button class="btn btn-sm active" id="btn-tool-brush" onclick="setBgTool('restore')" style="flex:1; background:#444;">Restore</button>
+                                 <button class="btn btn-sm" id="btn-tool-erase" onclick="setBgTool('erase')" style="flex:1; background:#222;">Erase</button>
+                             </div>
+                             
+                             <label class="label-title" style="font-size:0.85em;">Brush Size</label>
+                             <div class="row" style="align-items:center;">
+                                 <input type="range" id="bg-brush-size" min="5" max="100" value="20" style="flex:1; margin-right:10px;">
+                                 <b id="bg-brush-val" style="color:#ddd;">20</b>
+                             </div>
+                             
+                             <div class="row" style="margin-top:10px; gap:5px;">
+                                 <div class="col"><button class="btn btn-sm btn-secondary" onclick="bg_undo()" style="width:100%">Undo</button></div>
+                                 <div class="col"><button class="btn btn-sm btn-secondary" onclick="bg_redo()" style="width:100%">Redo</button></div>
+                             </div>
+                         </div>
+                         
                          <button class="btn" onclick="bg_process()" id="btn-bg-process" disabled>Remove Background</button>
                      </div>
                      <div id="bg-status" class="status-text"></div>
                      <button class="btn btn-secondary" onclick="bg_save()" id="btn-bg-save" style="width:100%; margin-top:20px;" disabled>Download Result</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="waveauth" class="section">
+        <div class="card">
+            <h2 style="text-align:center; margin-bottom:20px; color:var(--primary);">WaveAuth Audio Verifier v4.0</h2>
+            <div class="row">
+
+                <div class="col" style="flex:1; max-width:350px;">
+                     <div style="background:#222; padding:15px; border-radius:12px; height:100%; max-height:600px; display:flex; flex-direction:column;">
+                        <h4 style="margin-bottom:10px; color:#aaa;">Batch Queue</h4>
+                        
+                        <div style="display:flex; gap:5px; margin-bottom:10px;">
+                            <button class="btn btn-sm" onclick="wa_addFiles()" style="flex:1;">+ Add Files</button>
+                            <button class="btn btn-sm btn-secondary" onclick="wa_clearQ()">Clear</button>
+                        </div>
+                        
+                        <div id="wa-queue" style="flex:1; overflow-y:auto; background:#151b2e; border-radius:8px; padding:10px; margin-bottom:15px;">
+                            <div style="text-align:center; color:#555; font-size:0.9em;">Queue empty</div>
+                        </div>
+                        
+                        <button class="btn" onclick="wa_processQ()" id="wa-btn-run" disabled>Start Batch Processing</button>
+                        
+                        <hr style="border-color:#333; margin:15px 0;">
+                        
+                        <h4 style="margin-bottom:10px; color:#aaa;">History Repository</h4>
+                        
+
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-size:0.8em; color:#ddd; background:#111; padding:8px; border-radius:6px;">
+                            <div style="text-align:center;">Files<br><b id="wa-dash-files">0</b></div>
+                            <div style="text-align:center;">Avg Score<br><b id="wa-dash-score" style="color:var(--primary)">0.0</b></div>
+                            <div style="text-align:center;">Avg Time<br><b id="wa-dash-time">0s</b></div>
+                        </div>
+                        
+                        <div id="wa-history" style="flex:1; overflow-y:auto; background:#151b2e; border-radius:8px; padding:10px;">
+
+                        </div>
+                        <button class="btn btn-sm btn-secondary" onclick="wa_exportCSV()" style="margin-top:5px; width:100%;">Download Report (CSV)</button>
+                        <button class="btn btn-sm btn-secondary" onclick="wa_clearHistory()" style="margin-top:5px; width:100%;">Clear History</button>
+                        <button class="btn btn-sm btn-secondary" onclick="wa_clearTempImages()" style="margin-top:5px; width:100%; border:1px solid #444;">Clear Temp Images</button>
+                     </div>
+                </div>
+                
+
+                <div class="col" style="flex:2;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3 id="wa-filename" style="margin:0;">No file selected</h3>
+                        <div>
+                             <button class="btn btn-sm btn-secondary" onclick="wa_showRef()">Reference Examples</button>
+                             <button class="btn btn-sm btn-secondary" onclick="wa_exportImg()" id="wa-btn-export" disabled>Save Spectrogram</button>
+                        </div>
+                    </div>
+                    
+                    <div class="editor-container" style="background:#000; height:300px; margin-bottom:20px; border:1px solid #333;">
+                        <img id="wa-spectrogram" class="media-preview" style="display:none; width:100%; height:100%; object-fit:contain;">
+                        <span id="wa-ph" style="color:#555;">Spectrogram will appear here</span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col">
+                            <div style="background:#222; padding:15px; border-radius:10px;">
+                                <label class="label-title">Analysis Result (v4.0)</label>
+                                <div id="wa-verdict" style="font-size:1.3em; font-weight:bold; color:var(--primary); margin-bottom:5px;">-</div>
+                                <div id="wa-score" style="font-size:1.5em; color:#fff;">Score: -</div>
+                                <div id="wa-reasons" style="margin-top:10px; font-size:0.9em; color:#ffaa00;">
+
+                                </div>
+                                <div style="margin-top:15px; font-size:0.8em; color:#888; border-top:1px solid #444; padding-top:10px; font-style:italic;">
+                                    * Verdicts are reference only. Spectrogram validation is 100% accurate.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div style="background:#222; padding:15px; border-radius:10px;">
+                                <label class="label-title">Technical Metrics</label>
+                                <div style="font-size:0.95em; color:#ccc;">
+                                    <div style="display:flex; justify-content:space-between;"><span>Bandwidth Util:</span> <span id="wa-mp3" style="color:#00aaff">-</span></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Slope Metric:</span> <span id="wa-slope" style="color:#fff">-</span></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Bandwidth:</span> <span id="wa-bw" style="color:#fff">-</span></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Dyn Range:</span> <span id="wa-dr" style="color:#fff">-</span></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Format:</span> <span id="wa-fmt" style="color:#fff">-</span></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Duration:</span> <span id="wa-dur" style="color:#fff">-</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="wa-status" class="status-text" style="text-align:left; margin-left:5px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="wa-ref-modal" class="modal">
+        <div class="modal-content" style="max-width:1100px;">
+            <span class="close-modal" onclick="document.getElementById('wa-ref-modal').style.display='none'">&times;</span>
+            <h2 style="text-align:center; margin-bottom:20px;">WaveAuth Reference Examples</h2>
+            <p style="text-align:center; color:#aaa; margin-bottom:20px;">Compare your result with these baselines.</p>
+            <div class="row" style="text-align:center;">
+                <div class="col">
+                    <h3 style="color:#00ff88; margin-bottom:10px;">Example A</h3>
+                    <img src="http://127.0.0.1:8000/stream?path=d:/Git%20Clone%20Folder/Media-Downloader/screenshots/E1.png" style="width:100%; border:2px solid #333; border-radius:8px;">
+                     <p style="margin-top:5px; color:#888;">Example 1</p>
+                </div>
+                <div class="col">
+                    <h3 style="color:#ff0055; margin-bottom:10px;">Example B</h3>
+                     <img src="http://127.0.0.1:8000/stream?path=d:/Git%20Clone%20Folder/Media-Downloader/screenshots/E2.png" style="width:100%; border:2px solid #333; border-radius:8px;">
+                     <p style="margin-top:5px; color:#888;">Example 2</p>
                 </div>
             </div>
         </div>
@@ -696,6 +845,24 @@ HTML_CONTENT = """<!DOCTYPE html>
         bitrateContainer.style.display = (audioFmt === 'wav') ? 'none' : 'block';
     }
 
+    async function selectCoverArt() {
+        const f = await window.pywebview.api.choose_files(false);
+        if(f && f.length) {
+            const path = f[0];
+            document.getElementById('dl-cover-path').value = path;
+            document.getElementById('cover-preview').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(path);
+            document.getElementById('cover-preview').style.display = 'block';
+            document.getElementById('cover-placeholder').style.display = 'none';
+        }
+    }
+    
+    function clearCoverArt() {
+        document.getElementById('dl-cover-path').value = "";
+        document.getElementById('cover-preview').src = "";
+        document.getElementById('cover-preview').style.display = 'none';
+        document.getElementById('cover-placeholder').style.display = 'flex';
+    }
+
     async function dl_start() {
         if(!dlData) return;
         
@@ -706,6 +873,7 @@ HTML_CONTENT = """<!DOCTYPE html>
             fps: document.getElementById('dl-fps').value,
             bitrate: document.getElementById('dl-bitrate').value,
             audio_fmt: document.getElementById('dl-audio-fmt') ? document.getElementById('dl-audio-fmt').value : 'mp3',
+            cover_art: document.getElementById('dl-cover-path') ? document.getElementById('dl-cover-path').value : null,
             is_playlist: dlData._type === 'playlist'
         };
 
@@ -1212,6 +1380,10 @@ HTML_CONTENT = """<!DOCTYPE html>
     // --- BACKGROUND REMOVER ---
     let bgFile = null;
     let bgResultPath = null;
+    let bgSessionId = null;
+    let bgTool = 'restore'; // 'restore' or 'erase'
+    let bgIsDrawing = false;
+    let bgStrokePoints = [];
     
     async function bg_open() {
         const f = await window.pywebview.api.choose_files(false);
@@ -1224,6 +1396,8 @@ HTML_CONTENT = """<!DOCTYPE html>
             
             document.getElementById('btn-bg-process').disabled = false;
             document.getElementById('btn-bg-save').disabled = true;
+            document.getElementById('bg-tools').style.display = 'none';
+            document.getElementById('bg-canvas').style.display = 'none';
             document.getElementById('bg-status').innerText = "Ready to process.";
         }
     }
@@ -1231,21 +1405,30 @@ HTML_CONTENT = """<!DOCTYPE html>
     async function bg_process() {
         if(!bgFile) return;
         
-        // NEW: Get params
         const model = document.getElementById('bg-model').value;
-        const alpha = document.getElementById('bg-alpha').checked;
+        const alpha = document.getElementById('bg-alpha').checked; // Kept for future compatibility
         
         document.getElementById('bg-status').innerText = "Processing... (Loading " + model + "...)";
         document.getElementById('btn-bg-process').disabled = true;
         
-        const res = await window.pywebview.api.remove_bg(bgFile, model, alpha);
+        // Pass mode='remove_bg' explicitly
+        const res = await window.pywebview.api.remove_bg(bgFile, model, 'remove_bg');
         
         if(res.success) {
             bgResultPath = res.path;
-            document.getElementById('bg-result').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(res.path) + "&t=" + new Date().getTime();
-            document.getElementById('bg-preview').style.display = 'none'; // Hide original
+            bgSessionId = res.session_id; // Capture session ID
+            
+            const timeToken = new Date().getTime();
+            document.getElementById('bg-result').src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(res.path) + "&t=" + timeToken;
+            document.getElementById('bg-preview').style.display = 'none'; 
             document.getElementById('bg-result').style.display = 'block';
-            document.getElementById('bg-status').innerText = "Background Removed!";
+            
+            // Enable Tools
+            document.getElementById('bg-tools').style.display = 'block';
+            document.getElementById('bg-canvas').style.display = 'block';
+            initBgCanvas();
+            
+            document.getElementById('bg-status').innerText = "Background Removed! Use tools to refine.";
             document.getElementById('btn-bg-save').disabled = false;
         } else {
              document.getElementById('bg-status').innerText = "Error: " + res.error;
@@ -1253,14 +1436,562 @@ HTML_CONTENT = """<!DOCTYPE html>
         }
     }
     
-    async function bg_save() {
-        if(!bgResultPath) return;
-        const folder = await window.pywebview.api.choose_folder();
-        if(folder) {
-             const res = await window.pywebview.api.save_qr_cleanup(bgResultPath, folder);
-             if(res.success) alert("Saved!");
+    // Brush Tool Logic
+    function setBgTool(mode) {
+        bgTool = mode;
+        document.getElementById('btn-tool-brush').className = mode === 'restore' ? 'btn btn-sm active' : 'btn btn-sm';
+        document.getElementById('btn-tool-erase').className = mode === 'erase' ? 'btn btn-sm active' : 'btn btn-sm';
+        
+        // Visual feedback
+        const btnB = document.getElementById('btn-tool-brush');
+        const btnE = document.getElementById('btn-tool-erase');
+        btnB.style.background = mode === 'restore' ? '#444' : '#222';
+        btnE.style.background = mode === 'erase' ? '#444' : '#222';
+    }
+    
+    function initBgCanvas() {
+        const c = document.getElementById('bg-canvas');
+        const img = document.getElementById('bg-result');
+        const container = document.querySelector('#bgremover .editor-container');
+        
+        // Hàm tính toán vị trí và kích thước canvas khớp với ảnh
+        const updateCanvasSize = () => {
+            const w = img.naturalWidth;
+            const h = img.naturalHeight;
+            const cw = container.clientWidth;
+            const ch = container.clientHeight;
+            
+            if(!w || !h) return;
+            
+            // Tính scale để fit ảnh vào container (object-fit: contain)
+            const scale = Math.min(cw / w, ch / h);
+            const displayW = w * scale;
+            const displayH = h * scale;
+            
+            // Tính offset để center ảnh
+            const left = (cw - displayW) / 2;
+            const top = (ch - displayH) / 2;
+            
+            // Set canvas position và size khớp với ảnh hiển thị
+            c.style.position = 'absolute';
+            c.style.left = left + 'px';
+            c.style.top = top + 'px';
+            c.width = displayW;
+            c.height = displayH;
+            c.style.width = displayW + 'px';
+            c.style.height = displayH + 'px';
+            
+            // Lưu thông tin để dùng sau
+            c.dataset.displayWidth = displayW;
+            c.dataset.displayHeight = displayH;
+            c.dataset.naturalWidth = w;
+            c.dataset.naturalHeight = h;
+        };
+        
+        // Chạy khi ảnh load xong
+        if(img.complete && img.naturalWidth > 0) {
+            updateCanvasSize();
+        }
+        img.addEventListener('load', updateCanvasSize);
+        
+        // Theo dõi resize
+        const observer = new ResizeObserver(updateCanvasSize);
+        observer.observe(container);
+        
+        // Clear canvas
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, c.width, c.height);
+        
+        // Chỉ bind events một lần
+        if(c.dataset.bound) return;
+        c.dataset.bound = 'true';
+        
+        // Mouse events
+        c.addEventListener('mousedown', startDraw);
+        c.addEventListener('mousemove', draw);
+        c.addEventListener('mouseup', endDraw);
+        c.addEventListener('mouseleave', endDraw);
+        
+        // Touch events cho mobile
+        c.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            c.dispatchEvent(mouseEvent);
+        });
+        
+        c.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            c.dispatchEvent(mouseEvent);
+        });
+        
+        c.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            c.dispatchEvent(mouseEvent);
+        });
+        
+        // Brush size slider
+        document.getElementById('bg-brush-size').addEventListener('input', (e) => {
+            document.getElementById('bg-brush-val').innerText = e.target.value;
+        });
+    }
+    
+    function startDraw(e) {
+        if(!bgSessionId) return;
+        
+        bgIsDrawing = true;
+        bgStrokePoints = [];
+        
+        // Vẽ điểm đầu tiên
+        const c = document.getElementById('bg-canvas');
+        const rect = c.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        bgStrokePoints.push([Math.round(x), Math.round(y)]);
+        
+        // Vẽ một chấm tròn tại vị trí click
+        const ctx = c.getContext('2d');
+        const size = parseInt(document.getElementById('bg-brush-size').value);
+        
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.globalAlpha = 0.5;
+        
+        ctx.fillStyle = bgTool === 'restore' ? 'rgba(0, 255, 100, 1)' : 'rgba(255, 50, 50, 1)';
+        ctx.beginPath();
+        ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    function draw(e) {
+        if(!bgIsDrawing) return;
+        
+        const c = document.getElementById('bg-canvas');
+        const rect = c.getBoundingClientRect();
+        
+        // Tọa độ tương đối canvas
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Kiểm tra trong bounds
+        if(x < 0 || y < 0 || x > c.width || y > c.height) return;
+        
+        const lastPoint = bgStrokePoints[bgStrokePoints.length - 1];
+        const distance = lastPoint ? Math.sqrt(Math.pow(x - lastPoint[0], 2) + Math.pow(y - lastPoint[1], 2)) : 0;
+        
+        // Chỉ thêm point nếu di chuyển đủ xa (tránh spam)
+        if(distance > 2 || bgStrokePoints.length === 0) {
+            bgStrokePoints.push([Math.round(x), Math.round(y)]);
+        } else {
+            return; // Không vẽ nếu quá gần điểm trước
+        }
+        
+        const ctx = c.getContext('2d');
+        const size = parseInt(document.getElementById('bg-brush-size').value);
+        
+        ctx.globalAlpha = 0.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = size;
+        ctx.strokeStyle = bgTool === 'restore' ? 'rgba(0, 255, 100, 1)' : 'rgba(255, 50, 50, 1)';
+        
+        // Vẽ đường nối
+        if(bgStrokePoints.length >= 2) {
+            const prev = bgStrokePoints[bgStrokePoints.length - 2];
+            ctx.beginPath();
+            ctx.moveTo(prev[0], prev[1]);
+            ctx.lineTo(x, y);
+            ctx.stroke();
         }
     }
+    
+    async function endDraw() {
+        if(!bgIsDrawing) return;
+        bgIsDrawing = false;
+        
+        if(bgStrokePoints.length === 0) return;
+        
+        const c = document.getElementById('bg-canvas');
+        const size = parseInt(document.getElementById('bg-brush-size').value);
+        
+        // Lấy kích thước display và natural từ dataset
+        const displayW = parseFloat(c.dataset.displayWidth);
+        const displayH = parseFloat(c.dataset.displayHeight);
+        
+        if(!displayW || !displayH) {
+            console.error('Canvas size not initialized');
+            return;
+        }
+        
+        // Gửi stroke về backend
+        const stroke = {
+            points: bgStrokePoints,
+            mode: bgTool, // 'restore' hoặc 'erase'
+            radius: size
+        };
+        
+        const displaySize = [Math.round(displayW), Math.round(displayH)];
+        
+        document.getElementById('bg-status').innerText = "Applying stroke...";
+        
+        try {
+            const res = await window.pywebview.api.bg_edit(bgSessionId, [stroke], displaySize);
+            
+            if(res.success) {
+                // Cập nhật preview
+                if(res.preview) {
+                    const img = document.getElementById('bg-result');
+                    if(res.preview.startsWith('data:')) {
+                        img.src = res.preview;
+                    } else {
+                        img.src = "data:image/png;base64," + res.preview;
+                    }
+                    
+                    // Chờ ảnh load xong rồi mới clear canvas
+                    img.onload = () => {
+                        const ctx = c.getContext('2d');
+                        ctx.clearRect(0, 0, c.width, c.height);
+                    };
+                } else {
+                    // Nếu không có preview, vẫn GIỮ canvas để user thấy được nét vẽ
+                    console.warn('No preview returned from server');
+                }
+                
+                document.getElementById('bg-status').innerText = "Stroke applied successfully.";
+            } else {
+                document.getElementById('bg-status').innerText = "Failed: " + (res.error || "Unknown error");
+                // Vẫn giữ canvas khi lỗi để user thấy được họ đã vẽ gì
+            }
+        } catch(error) {
+            console.error('Edit failed:', error);
+            document.getElementById('bg-status').innerText = "Error applying stroke";
+            // Vẫn giữ canvas khi lỗi
+        }
+        
+        // KHÔNG clear canvas ở đây nữa - chỉ clear khi có ảnh mới load xong
+        // Điều này cho phép user thấy nét vẽ của mình trong khi chờ server xử lý
+        
+        // Reset stroke points
+        bgStrokePoints = [];
+    }
+    
+    async function bg_undo() {
+        if(!bgSessionId) return;
+        const res = await window.pywebview.api.bg_undo(bgSessionId);
+        handleEditRes(res, "Undo");
+    }
+    
+    async function bg_redo() {
+        if(!bgSessionId) return;
+        const res = await window.pywebview.api.bg_redo(bgSessionId);
+        handleEditRes(res, "Redo");
+    }
+    
+    function handleEditRes(res, action) {
+        if(res.success) {
+            if(res.preview) { // Check if we have a preview
+                 if(res.preview.startsWith('data:')) {
+                     document.getElementById('bg-result').src = res.preview;
+                 } else {
+                     document.getElementById('bg-result').src = "data:image/png;base64," + res.preview;
+                 }
+            }
+            document.getElementById('bg-status').innerText = action + " successful.";
+        } else {
+            document.getElementById('bg-status').innerText = action + " failed: " + res.error;
+        }
+    }
+    
+    async function bg_save() {
+        if(!bgResultPath && !bgSessionId) return;
+        
+        const folder = await window.pywebview.api.choose_folder();
+        if(folder) {
+             if(bgSessionId) {
+                 const res = await window.pywebview.api.bg_save_export(bgSessionId, folder);
+                 if(res.success) alert("Saved to " + res.path);
+                 else alert("Save failed: " + res.error);
+             } else {
+                 // Fallback
+                 const res = await window.pywebview.api.save_qr_cleanup(bgResultPath, folder);
+                 if(res.success) alert("Saved!");
+             }
+        }
+    }
+    // --- WAVEAUTH START v4.0 ---
+    let waFiles = [];
+    let waCurrentData = null; 
+
+    async function wa_addFiles() {
+        const f = await window.pywebview.api.choose_files(true);
+        if(f) {
+            waFiles = [...waFiles, ...f];
+            wa_updateQ();
+        }
+    }
+    
+    function wa_clearQ() {
+        waFiles = [];
+        wa_updateQ();
+    }
+    
+    function wa_removeQ(idx) {
+        waFiles.splice(idx, 1);
+        wa_updateQ();
+    }
+    
+    function wa_updateQ() {
+        const q = document.getElementById('wa-queue');
+        if(waFiles.length === 0) {
+            q.innerHTML = '<div style="text-align:center; color:#555; font-size:0.9em;">Queue empty</div>';
+            document.getElementById('wa-btn-run').disabled = true;
+            return;
+        }
+        
+        q.innerHTML = waFiles.map((f, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#222; padding:8px; margin-bottom:5px; border-radius:6px; font-size:0.85em;">
+                <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">${f.split(/[\\\\/]/).pop()}</div>
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <span style="color:#888; font-size:0.8em;" id="wa-q-status-${i}">Pending</span>
+                    <button style="background:none; border:none; color:#ff5555; cursor:pointer; font-weight:bold;" onclick="wa_removeQ(${i})" title="Remove">×</button>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('wa-btn-run').disabled = false;
+    }
+    
+    async function wa_processQ() {
+        if(waFiles.length === 0) return;
+        
+        const btn = document.getElementById('wa-btn-run');
+        const status = document.getElementById('wa-status');
+        btn.disabled = true;
+        status.innerText = "Starting Batch...";
+        
+        // Copy queue logic processed one by one
+        let processed = 0;
+        // Disable remove buttons during processing
+        const removeBtns = document.querySelectorAll('#wa-queue button');
+        removeBtns.forEach(b => b.disabled = true);
+        
+        for(let i=0; i<waFiles.length; i++) {
+            const f = waFiles[i];
+            const statEl = document.getElementById(`wa-q-status-${i}`);
+            statEl.style.color = "#00aaff";
+            statEl.innerText = "Running...";
+            status.innerText = `Analyzing ${i+1}/${waFiles.length}: ${f.split(/[\\\\/]/).pop()}...`;
+            
+            try {
+                const res = await window.pywebview.api.wa_analyze(f);
+                if(res.success) {
+                    statEl.style.color = "#00ff88";
+                    statEl.innerText = "Done";
+                    wa_render(res);
+                } else {
+                    statEl.style.color = "#ff0055";
+                    statEl.innerText = "Error";
+                    console.error(res.error);
+                }
+            } catch(e) {
+                 statEl.style.color = "#ff0055";
+                 statEl.innerText = "Fail";
+            }
+            
+            processed++;
+            wa_loadHistory();
+        }
+        
+        // Safe Queue Clearing as requested
+        waFiles = [];
+        wa_updateQ();
+        
+        btn.disabled = false;
+        status.innerText = `Batch Complete. Processed ${processed} files.`;
+    }
+    
+    function wa_render(data) {
+        waCurrentData = data;
+        document.getElementById('wa-filename').innerText = data.filename;
+        document.getElementById('wa-verdict').innerText = data.verdict;
+        document.getElementById('wa-score').innerText = `Score: ${data.score}/100`;
+        
+        const v = document.getElementById('wa-score');
+        if(data.score >= 90) v.style.color = "#00ff88"; 
+        else if(data.score >= 70) v.style.color = "#ffaa00"; 
+        else v.style.color = "#ff0055"; 
+        
+        // Detailed Metrics
+        document.getElementById('wa-slope').innerText = data.metrics ? data.metrics.slope_metric : "-";
+        document.getElementById('wa-bw').innerText = data.metrics ? data.metrics.bandwidth_ratio : "-";
+        document.getElementById('wa-dr').innerText = data.metrics ? data.metrics.dynamic_range + " dB" : "-";
+        document.getElementById('wa-fmt').innerText = data.format || "-";
+        document.getElementById('wa-mp3').innerText = data.mp3_profile || "-";
+        
+        let cutoffDisplay = "-";
+        if(data.cutoff_freq_hz) cutoffDisplay = data.cutoff_freq_hz + " Hz";
+        else if(data.cutoff) cutoffDisplay = data.cutoff;
+        
+        document.getElementById('wa-dur').innerHTML = Math.round(data.duration) + "s <br><span style='font-size:0.8em; color:#888;'>Cutoff: " + cutoffDisplay + "</span>";
+        
+        // Reasons
+        const reasonslist = document.getElementById('wa-reasons');
+        if(data.reasons && data.reasons.length > 0) {
+            reasonslist.innerHTML = data.reasons.map(r => `<div>• ${r}</div>`).join('');
+        } else {
+            reasonslist.innerHTML = "";
+        }
+        
+        const img = document.getElementById('wa-spectrogram');
+        img.src = "data:image/png;base64," + data.spectrogram;
+        img.style.display = 'block';
+        document.getElementById('wa-ph').style.display = 'none';
+        
+        document.getElementById('wa-btn-export').disabled = false;
+    }
+    
+    async function wa_loadHistory() {
+        const hist = await window.pywebview.api.wa_history();
+        const container = document.getElementById('wa-history');
+        
+        // Dashboard Stats
+        let total = hist.length;
+        let avgScore = 0;
+        let avgTime = 0;
+        
+        if(total > 0) {
+            avgScore = hist.reduce((sum, h) => sum + (h.score||0), 0) / total;
+            const times = hist.map(h => parseFloat((h.process_time||"0").replace('s','')));
+            avgTime = times.reduce((sum, t) => sum + t, 0) / total;
+        }
+        
+        document.getElementById('wa-dash-files').innerText = total;
+        document.getElementById('wa-dash-score').innerText = avgScore.toFixed(1);
+        document.getElementById('wa-dash-time').innerText = avgTime.toFixed(2) + "s";
+        
+        if(!hist || hist.length === 0) {
+            container.innerHTML = '<div style="color:#555; text-align:center; font-size:0.9em; padding:10px;">No history</div>';
+            return;
+        }
+        
+        container.innerHTML = hist.map(item => `
+            <div style="background:#222; border-bottom:1px solid #333; padding:8px; font-size:0.85em; cursor:pointer;" onclick='wa_render_hist(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="font-weight:bold; color:#ccc; max-width:140px; overflow:hidden; text-overflow:ellipsis;">${item.filename}</span>
+                    <span style="${item.score>=90?'color:#00ff88':(item.score>=50?'color:#ffaa00':'color:#ff0055')}">${item.score}/100</span>
+                </div>
+                <div style="font-size:0.9em; color:#666;">${item.verdict}</div>
+            </div>
+        `).join('');
+    }
+    
+    function wa_render_hist(item) {
+        waCurrentData = null; 
+        
+        document.getElementById('wa-filename').innerText = item.filename;
+        document.getElementById('wa-verdict').innerText = item.verdict;
+        document.getElementById('wa-score').innerText = `Score: ${item.score}/100`;
+        
+        const v = document.getElementById('wa-score');
+        if(item.score >= 90) v.style.color = "#00ff88"; 
+        else if(item.score >= 70) v.style.color = "#ffaa00"; 
+        else v.style.color = "#ff0055";
+        
+        document.getElementById('wa-slope').innerText = item.metrics ? item.metrics.slope_metric : "-";
+        document.getElementById('wa-bw').innerText = item.metrics ? item.metrics.bandwidth_ratio : "-";
+        document.getElementById('wa-dr').innerText = item.metrics ? item.metrics.dynamic_range + " dB" : "-";
+        document.getElementById('wa-fmt').innerText = item.format || "-";
+        document.getElementById('wa-mp3').innerText = item.mp3_profile || "-";
+        
+        let cutoffDisplay = "-";
+        if(item.cutoff_freq_hz) cutoffDisplay = item.cutoff_freq_hz + " Hz";
+        else if(item.cutoff) cutoffDisplay = item.cutoff;
+        
+        document.getElementById('wa-dur').innerHTML = Math.round(item.duration) + "s <br><span style='font-size:0.8em; color:#888;'>Cutoff: " + cutoffDisplay + "</span>";
+
+        const reasonslist = document.getElementById('wa-reasons');
+        if(item.reasons && item.reasons.length > 0) {
+            reasonslist.innerHTML = item.reasons.map(r => `<div>• ${r}</div>`).join('');
+        } else {
+             reasonslist.innerHTML = "";
+        }
+        
+        const img = document.getElementById('wa-spectrogram');
+        const ph = document.getElementById('wa-ph');
+        
+        // Safety Clear
+        img.src = ""; 
+        img.style.display = 'none';
+        
+        if (item.temp_image) {
+             const timeToken = new Date().getTime(); // Anti-cache
+             img.src = "http://127.0.0.1:8000/stream?path=" + encodeURIComponent(item.temp_image) + "&t=" + timeToken;
+             img.style.display = 'block';
+             ph.style.display = 'none';
+        } else {
+            // Explicitly ensure it's hidden and src is empty
+            img.style.display = 'none';
+            ph.style.display = 'block';
+            ph.innerText = "Spectrogram not saved in history";
+        }
+        
+        document.getElementById('wa-btn-export').disabled = true;
+    }
+
+    async function wa_clearHistory() {
+        await window.pywebview.api.wa_clear();
+        wa_loadHistory();
+    }
+    
+    function wa_showRef() {
+        document.getElementById('wa-ref-modal').style.display = 'block';
+    }
+    
+    function wa_exportImg() {
+        if(!waCurrentData || !waCurrentData.spectrogram) return;
+        const a = document.createElement('a');
+        a.href = "data:image/png;base64," + waCurrentData.spectrogram;
+        a.download = `spectrogram_${waCurrentData.filename}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+    
+    async function wa_exportCSV() {
+        const csvContent = await window.pywebview.api.wa_export_csv();
+        if(!csvContent) { alert("No history to export"); return; }
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audio_report_${new Date().getTime()}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+    
+    async function wa_clearTempImages() {
+        if(!confirm("Delete all temporary analysis images?")) return;
+        const res = await window.pywebview.api.wa_clear_temp();
+        if(res) alert("Temp images cleared.");
+        else alert("Failed to clear temp images.");
+    }
+    
+    // Init History on load
+    window.addEventListener('DOMContentLoaded', () => {
+        wa_loadHistory();
+    });
+    // --- WAVEAUTH END ---
 </script>
 </body>
 </html>

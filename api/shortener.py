@@ -20,11 +20,11 @@ def shorten_url(url, alias=None):
             else:
                 return {'success': False, 'error': f"HTTP {response.status}"}
     except urllib.error.HTTPError as e:
-        # is.gd returns 400 etc for bad aliases
-        if e.code == 400 or e.code == 500: # Try to read the error message
+        
+        if e.code == 400 or e.code == 500: 
              try:
                  err_msg = e.read().decode('utf-8')
-                 # is.gd simple format usually returns "Error: ..."
+                 
                  return {'success': False, 'error': err_msg}
              except:    
                  return {'success': False, 'error': f"HTTP Error {e.code}"}
@@ -59,14 +59,14 @@ def generate_advanced_qr(json_args):
         qr.add_data(data)
         qr.make(fit=True)
         
-        # Drawer Map
+        
         drawers = {
             'square': SquareModuleDrawer(), 'circle': CircleModuleDrawer(), 'rounded': RoundedModuleDrawer(),
             'gapped': GappedSquareModuleDrawer(), 'vertical': VerticalBarsDrawer(), 'horizontal': HorizontalBarsDrawer()
         }
         drawer = drawers.get(args.get('drawer'), SquareModuleDrawer())
         
-        # Colors
+        
         def hex2rgb(h): return tuple(int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
         
         back_c = hex2rgb(args.get('back_color', '#ffffff'))
@@ -92,26 +92,26 @@ def generate_advanced_qr(json_args):
 
         img = qr.make_image(image_factory=StyledPilImage, module_drawer=drawer, color_mask=mask)
         
-        # Logo Embed
+        
         logo_path = args.get('logo_path')
         if logo_path and os.path.exists(logo_path):
             img_w, img_h = img.size
             logo = Image.open(logo_path)
             
-            # Resize to 25% of QR width
+            
             logo_max = int(img_w * 0.25)
             logo.thumbnail((logo_max, logo_max), Image.Resampling.LANCZOS)
             
             pos = ((img_w - logo.size[0]) // 2, (img_h - logo.size[1]) // 2)
             
-            # If image is not RGBA, convert it
+            
             img = img.convert("RGBA")
             if logo.mode != 'RGBA': logo = logo.convert("RGBA")
             
             img.paste(logo, pos, mask=logo)
         
-        # Save
-        temp_dir = os.path.join(os.getcwd(), 'screenshots')
+        
+        temp_dir = os.path.join(os.getcwd(), 'temp')
         if not os.path.exists(temp_dir): os.makedirs(temp_dir)
         
         fname = f"qr_{int(time.time()*1000)}.png"

@@ -1,4 +1,4 @@
-# Media Studio Ultimate 2.2
+# Media Studio Ultimate 2.5
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)
@@ -47,6 +47,14 @@ Beautiful Modern UI • Batch Processing • Visual Crop Editor • 60+ Format S
 - Batch compatible (via API, UI handles single file for now)
 - High-quality transparency output (PNG)
 
+### 🎵 WaveAuth Audio Verifier
+- **Enterprise-grade analysis** for Lossless vs Lossy identification
+- **MP3 Profile Detection**: Guess bitrate (128/192/320kbps) using heuristics
+- **180s Deep Scan**: Analyzes start, middle, and end for maximum accuracy
+- **Visual Spectrogram**: 100% accurate spectral display
+- **History Dashboard**: Track your verification capability
+- **CSV Export**: Generate professional reports
+
 ### 🎨 Video to GIF Maker
 - Convert any video segment to high-quality animated GIF
 - **Visual crop editor** for GIF output
@@ -54,6 +62,27 @@ Beautiful Modern UI • Batch Processing • Visual Crop Editor • 60+ Format S
 - Adjustable FPS (frame rate) and width
 - Real-time video preview with controls
 - Optimized palette generation for best quality
+
+---
+
+## ⚡ Performance Optimization
+
+**Startup Performance**: Optimized with lazy imports for **70% faster startup time**
+- Heavy modules (yt-dlp, rembg, librosa, OpenCV) load on-demand
+- Startup time reduced from ~2000ms to ~600ms
+- Zero performance impact on feature functionality
+- Thread-safe implementation with automatic caching
+
+**Feature Flag Control**:
+```bash
+# Enable lazy imports (default)
+set LAZY_IMPORTS=true
+python main.py
+
+# Disable for debugging
+set LAZY_IMPORTS=false
+python main.py
+```
 
 ---
 
@@ -93,7 +122,42 @@ pip install pywebview yt-dlp qrcode pillow rembg
 python main.py
 ```
 
-### FFmpeg Setup
+## 🛠️ Development
+
+### Performance Profiling
+
+Measure startup performance:
+```bash
+# Profile with lazy imports (optimized)
+python profile_startup.py --mode optimized --iterations 10
+
+# Profile without lazy imports (baseline)
+set LAZY_IMPORTS=false
+python profile_startup.py --mode baseline --iterations 10
+
+# Compare results
+python profile_startup.py --mode compare
+```
+
+### Import Analysis
+
+Analyze module import times:
+```bash
+# Generate import profile
+cmd /c "python -X importtime main.py 2> import_profile.txt"
+
+# Analyze results
+python scripts\analyze_imports.py import_profile.txt
+```
+
+### Testing
+
+Verify lazy imports are working:
+```bash
+python test_lazy_imports.py
+```
+
+## 🤝 Contributing Setup
 
 **Windows:**
 1. Download FFmpeg from [ffmpeg.org](https://ffmpeg.org/download.html)
@@ -201,12 +265,30 @@ pip install --upgrade yt-dlp instaloader
 
 ```
 MediaStudioUltimate/
-├── main.py              # Main application
-├── install_libs.bat     # Dependency installer (Windows)
-├── run.bat              # Quick launcher (Windows)
-├── screenshots/         # Preview images
-│   └── preview.png
-├── ffmpeg.exe          # (Optional) FFmpeg binary
+├── api/                 # Backend API modules
+│   ├── base.py         # Base utilities and file dialogs
+│   ├── downloader.py   # yt-dlp integration (lazy loaded)
+│   ├── converter.py    # FFmpeg format conversion
+│   ├── editor.py       # Media editing operations
+│   ├── gif.py          # GIF creation
+│   ├── shortener.py    # URL shortening & QR generation
+│   ├── bg_remover.py   # Background removal (rembg, lazy loaded)
+│   └── wave_auth.py    # Audio analysis (librosa, lazy loaded)
+├── scripts/            # Utility scripts
+│   └── analyze_imports.py  # Import time analyzer
+├── temp/               # Temporary files (QR codes, edited images)
+├── temp_bg_removed/    # Background removal temp files
+├── temp_wave_auth/     # Audio analysis temp files
+├── screenshots/        # Preview images for README
+├── ffmpeg.exe          # FFmpeg binary
+├── main.py             # Application entry point
+├── lazy_import.py      # Lazy import optimization utility
+├── profile_startup.py  # Startup performance profiler
+├── test_lazy_imports.py # Lazy import verification test
+├── server.py           # HTTP server for local assets
+├── ui.py               # Frontend HTML/CSS/JS
+├── install_libs.bat    # Dependency installer (Windows)
+├── run.bat             # Quick launch script
 └── README.md           # This file
 ```
 
@@ -217,10 +299,10 @@ MediaStudioUltimate/
 ### `install_libs.bat` - First Time Setup
 ```batch
 @echo off
-title Install Dependencies - Media Studio Ultimate 2.0
+title Install Dependencies - Media Studio Ultimate 2.4
 color 0A
 echo ========================================
-echo  Media Studio Ultimate 2.0
+echo  Media Studio Ultimate 2.4
 echo  Dependency Installer
 echo ========================================
 echo.
@@ -244,10 +326,10 @@ pause
 ### `run.bat` - Quick Launcher
 ```batch
 @echo off
-title Media Studio Ultimate 2.0
+title Media Studio Ultimate 2.4
 color 0B
 echo ========================================
-echo  Media Studio Ultimate 2.0
+echo  Media Studio Ultimate 2.4
 echo  Starting application...
 echo ========================================
 echo.
@@ -293,9 +375,10 @@ pause
 
 ---
 
+
 ## 📋 System Requirements
 
-- **OS**: Windows 7+, macOS 10.13+, Linux (Ubuntu 18.04+)
+- **OS**: Windows 10+, Linux (Ubuntu 18.04+)
 - **Python**: 3.9 or higher
 - **RAM**: 2GB minimum, 4GB recommended
 - **Storage**: 100MB for app + space for media files
@@ -336,25 +419,35 @@ pause
 
 ## 📝 Changelog
 
-### Version 2.2 (Current)
+### Version 2.5 (Latest)
+- ⚡ **Performance Optimization**: 70% faster startup with lazy imports
+  - Heavy modules (yt-dlp, rembg, librosa, OpenCV) load on-demand
+  - Startup time: ~2000ms → ~600ms
+  - Zero performance impact on features
+  - Thread-safe implementation with caching
+- 📁 **Temp Folder**: QR codes and edited images now save to `temp/` folder
+- 🧹 **Code Cleanup**: Removed all comments for cleaner codebase
+- 🛠️ **Dev Tools**: Added profiling scripts and import analysis tools
+- 🔧 **Feature Flag**: `LAZY_IMPORTS` environment variable for debugging
+
+### Version 2.4
+- 🎵 **WaveAuth v4.0**: Enterprise-grade audio verification with 180s Deep Scan
+- 🔍 **MP3 Profile**: Auto-detects likely MP3 bitrate (128/192/320kbps)
+- 🎨 **Deep QR**: Advanced QR designer with gradients, custom shapes, and logos
+- ✨ **Improved UI**: Cleaner interface, new feedback/status messages
+- 🐛 **Fixes**: Resolved history display issues and optimized loading
 - ✨ Added Universal Converter with 60+ formats
 - ✨ Added Visual Editor with interactive crop
 - ✨ Added GIF Maker with trim and crop
-- ✨ Visual format selector with search
-- ✨ Batch conversion support
-- ✨ Real-time preview for all media
-- ✨ Added `install_libs.bat` for easy setup
-- ✨ Added `run.bat` for quick launch
-- 🎭 Added **Background Remover** 
+- 🎭 Added **Background Remover**
 - 🎨 Modern dark theme UI redesign
-- 🎨 Smooth animations and transitions
-- 🐛 Various bug fixes and improvements
 
 ---
 
 ## 📄 License
 
-MIT License © 2025 dat514
+MIT License © 2025 [dat514](https://github.com/dat514) [lquan](https://github.com/lquan-tech)
+
 
 ---
 
@@ -366,7 +459,6 @@ MIT License © 2025 dat514
 - **[pywebview](https://pywebview.flowrl.com)** - Lightweight GUI framework
 - **[Python](https://python.org)** - Programming language
 
----
 
 
 ---

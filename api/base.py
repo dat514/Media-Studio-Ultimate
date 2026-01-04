@@ -27,7 +27,7 @@ def choose_folder():
 
 def update_libraries():
     try:
-        subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp", "instaloader"], check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp", "instaloader", "librosa", "numpy", "matplotlib", "soundfile", "pandas"], check=True)
         return {'success': True, 'message': 'Libraries updated successfully!'}
     except Exception as e:
         return {'success': False, 'message': f'Update failed: {e}'}
